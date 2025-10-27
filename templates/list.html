@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>보고서 목록</title>
+  <style>
+    :root {
+      --accent: #0ea5e9;
+      --accent-dark: #0b86bf;
+      --glass-bg: rgba(255,255,255,.12);
+      --glass-border: rgba(255,255,255,.35);
+      --glass-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+
+    html, body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #0080ff 0%, #009eff 50%, #00c6ff 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 40px; /* ✅ 상단 여백 */
+      color: #fff;
+    }
+
+    .wrapper {
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+      justify-content: center;
+      width: min(95vw, 1100px);
+    }
+
+    /* 사이드바 */
+    .sidebar {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      backdrop-filter: blur(18px);
+      padding: 25px;
+      box-shadow: var(--glass-shadow);
+      min-width: 160px;
+      height: fit-content;
+    }
+
+    .sidebar h3 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #eaf6ff;
+      font-size: 1.1rem;
+    }
+
+    .dept-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .dept-list li { margin-bottom: 10px; }
+
+    .dept-list a {
+      display: block;
+      text-decoration: none;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      padding: 8px 12px;
+      text-align: center;
+      transition: all 0.25s;
+      font-weight: 500;
+    }
+
+    .dept-list a:hover,
+    .dept-list a.active {
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    /* 메인 컨테이너 */
+    .container {
+      color: #eaf6ff;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      flex: 1;
+      background: var(--glass-bg);
+      backdrop-filter: blur(14px) saturate(120%);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      box-shadow: var(--glass-shadow);
+      padding: 40px 50px;
+      position: relative;
+      margin-bottom: 32px;
+    }
+
+    /* 로그아웃 버튼 */
+    .btn-logout {
+      position: absolute;
+      top: 30px;
+      right: 40px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #fff;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+
+    .btn-logout:hover {
+      background: rgba(14,165,233,.45);
+      box-shadow: 0 5px 10px rgba(14,165,233,.35);
+    }
+
+    h1 {
+      text-align: center;
+      color: #eaf6ff;
+      text-shadow: 0 1px 2px rgba(0,0,0,.2);
+      margin-bottom: 25px;
+    }
+
+/* 상단 전체 레이아웃 */
+    .top-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 10px; /* ✅ 리스트 테이블과 간격 좁게 */
+    }
+
+    /* 새 보고서 작성 버튼 */
+    .create-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    /* 날짜 필터 + 검색창 나란히 */
+    .filter-section {
+        width: 100%;
+        display: flex;
+        justify-content: space-between; /* ✅ 좌우 배치 */
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* ✅ 날짜 필터 전체 감싸는 박스 복원 */
+    .date-filter {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 10px;
+        padding: 5px 10px; /* 🔹 padding 약간 늘림 */
+        height: 32px; /* 🔹 외곽 박스 고정 높이 */
+        box-sizing: content-box; /* 🔹 정확히 내부 높이만 계산 */
+    }
+
+    .date-filter input[type="date"] {
+        height: 28px; /* 🔹 내부 input은 살짝 작게 */
+        padding: 0 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        font-size: 0.85rem;
+        cursor: pointer;
+        line-height: 1.4; /* 🔹 수직 중앙 정렬 균형용 */
+        transition: all 0.2s ease;
+    }
+
+    .date-filter input[type="date"]::-webkit-calendar-picker-indicator {
+        transform: scale(0.9); /* 🔹 달력 아이콘 살짝 축소로 정렬 정확도 향상 */
+    }
+
+    .date-filter input[type="date"]:hover,
+    .date-filter input[type="date"]:focus {
+        border-color: #00AEEF;
+        background: rgba(0,174,239,0.25);
+        outline: none;
+    }
+
+    .btn-reset {
+        height: 28px; /* 🔹 input과 동일 높이 */
+        background: linear-gradient(180deg, #00AEEF 0%, #0095D9 100%);
+        border: none;
+        border-radius: 6px;
+        color: white;
+        padding: 0 10px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-reset:hover {
+        background: linear-gradient(180deg, #00BFFF 0%, #008AC7 100%);
+    }
+
+    /* 검색창 */
+    .search-form {
+        display: flex;
+        align-items: center;
+        height: 30px; /* 🔽 날짜 필터와 동일하게 줄이기 */
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.25);
+        border-radius: 8px;
+        padding: 0 6px;
+    }
+
+    .search-select,
+    .search-input {
+        font-size: 0.85rem; /* 🔽 글자 크기도 약간 축소 */
+    }
+
+    .search-input {
+        height: 100%;
+        background: transparent;
+        border: none;
+        color: #fff;
+        padding: 0 6px;
+        outline: none;
+        width: 160px;
+    }
+
+    .search-btn {
+        background: none;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        font-size: 0.95rem;
+        padding-left: 4px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 42px; /* ✅ 검색창 높이와 동일하게 */
+        padding: 0 18px; /* ✅ 좌우 여백만 지정 */
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #fff;
+        cursor: pointer;
+        text-decoration: none;
+        background: linear-gradient(180deg, #00AEEF 0%, #0095D9 100%); /* ✅ 가자연세병원(서울점) 로고 톤 */
+        box-shadow: 0 3px 10px rgba(0, 174, 239, 0.4);
+        transition: all 0.25s ease;
+    }
+
+    .btn:hover {
+        background: linear-gradient(180deg, #00BFFF 0%, #008AC7 100%);
+        box-shadow: 0 4px 12px rgba(0, 174, 239, 0.55);
+        transform: translateY(-1px);
+    }
+
+    /* 검색 및 월 선택 영역 */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    /* ✅ 관리자 페이지 전용 */
+    .admin .filter-bar {
+        justify-content: flex-end;  /* 오른쪽 정렬 */
+        width: 100%;
+    }
+
+    .month-form select {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.9rem;
+    }
+
+    .search-form {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 10px;
+      padding: 6px 10px;
+    }
+
+    .search-select, .search-input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .search-select option {
+      background: #007ee5;
+      color: #fff;
+    }
+
+    .search-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+
+    /* 테이블 */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: rgba(255,255,255,.06);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,.1);
+      table-layout: fixed;
+    }
+
+    th:nth-child(1), td:nth-child(1) { width: 15%; text-align: center; }  
+    th:nth-child(2), td:nth-child(2) { width: 45%; }  
+    th:nth-child(3), td:nth-child(3) { width: 30%; text-align: center; }  
+    th:nth-child(4), td:nth-child(4) { width: 10%; text-align: center; }  
+
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.15);
+      color: #f5faff;
+      word-wrap: break-word;
+      vertical-align: middle;  /* ✅ 추가: 세로 중앙 정렬 */
+    }
+
+    th {
+      background: rgba(255,255,255,.15);
+      font-weight: 600;
+      color: #e0f3ff;
+    }
+
+    tr:hover { background-color: rgba(255,255,255,.08); }
+
+    /* 제목 링크 */
+    table td:nth-child(2) a {
+      color: #ffffff !important;
+      text-decoration: none;
+    }
+    table td:nth-child(2) a:hover {
+      color: #eaf6ff !important;
+      text-decoration: underline;
+    }
+
+    /* ✅ 카테고리 검색 시 뱃지 + 손가락 + 내용 완전 수평 정렬 */
+    td strong {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 700;
+        color: #fff;
+        cursor: pointer;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+        transition: all 0.2s ease;
+        vertical-align: middle;
+    }
+
+    td strong:hover {
+        transform: scale(1.05);
+        filter: brightness(1.1);
+    }
+
+    /* ✅ 한 줄(뱃지+손+내용)을 중앙 기준선 정렬 */
+/* ✅ 한 줄(뱃지 + 손가락 + 내용)을 완전히 수평중앙 정렬 */
+    .category-line {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+        line-height: 1;
+        position: relative;
+        top: 1px;
+        min-height: 28px;
+    }
+
+    .category-line .content-text {
+        display: block;             /* ✅ inline-block → block 으로 변경 */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #e5f8ff;
+        max-width: 70%;
+        line-height: 1.2;           /* ✅ 고정 line-height로 높이 안정화 */
+    }
+
+    .category-line strong,
+    .category-line .finger {
+    flex-shrink: 0;             /* ✅ 줄바꿈 영향 안 받게 고정 */
+    }
+
+
+ 
+
+
+
+    .category-purchase { background: linear-gradient(90deg, #00c6ff, #0072ff); }
+    .category-admin { background: linear-gradient(90deg, #f59e0b, #f97316); }
+    .category-hr { background: linear-gradient(90deg, #22c55e, #16a34a); }
+    .category-warning { background: linear-gradient(90deg, #ef4444, #b91c1c); }
+    .category-general { background: linear-gradient(90deg, #6b7280, #9ca3af); }
+
+    td {
+        vertical-align: middle;  /* 셀 자체를 중앙으로 */
+    }
+    
+    /* ✅ 카테고리 검색 시 뱃지 옆에 손+내용 표시 */
+    .content-line {
+        display: inline-flex;         /* ✅ 뱃지 옆 가로 정렬 */
+        align-items: center;
+        gap: 6px;                     /* 손가락과 내용 간격 */
+        margin-left: 8px;
+        color: #e5f8ff;
+        line-height: 1.4;
+        max-width: 70%;               /* ✅ 셀 폭의 70%까지만 */
+        vertical-align: middle;
+    }
+
+    .content-line .finger {
+        flex-shrink: 0;
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    .content-line .content-text {
+        display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis;      /* ✅ 길면 … 처리 */
+        white-space: nowrap;
+        max-width: 100%;
+    }
+
+
+    .finger { font-size: 1rem; flex-shrink: 0; }
+
+    /* 첨부 아이콘 */
+    .file-icon {
+      font-size: 1.3rem;
+      cursor: pointer;
+      color: #bde6ff;
+      filter: drop-shadow(0 0 2px rgba(255,255,255,0.4));
+      transition: 0.2s;
+    }
+
+    .file-icon:hover {
+      transform: scale(1.2);
+      color: #fff;
+    }
+
+    /* 팝업 중앙 표시 */
+    #file-popup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(3px);
+      z-index: 9999;
+    }
+
+    #file-popup-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 16px;
+      padding: 24px 30px;
+      color: #fff;
+      width: min(90%, 380px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      text-align: center;
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
+      to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    {% if user['department'] == '관리자' %}
+    <div class="sidebar">
+      <h3>부서 선택</h3>
+      <ul class="dept-list">
+        <li><a href="/list" class="{{ 'active' if not selected_dept else '' }}">전체보기</a></li>
+        {% for d in departments %}
+        <li><a href="/list?dept={{ d }}" class="{{ 'active' if selected_dept == d else '' }}">{{ d }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="container {% if user['department'] == '관리자' %}admin{% endif %}">
+      <a href="/logout" class="btn-logout">로그아웃</a>
+      <h1>
+        {% if user['department'] == "관리자" %}
+            {% if selected_dept == "전체" or not selected_dept %}
+                전체 보고서 목록
+            {% else %}
+                {{ selected_dept }} 보고서 목록
+            {% endif %}
+        {% else %}
+            {{ user['department'] }} 보고서 목록
+        {% endif %}
+      </h1>
+
+
+
+            <!-- ✅ 날짜 필터 + 검색창 추가 -->
+      <div class="top-actions">
+        {% if user['department'] != '관리자' %}
+            <div class="create-wrapper">
+                <a href="/create" class="btn">+ 새 보고서 작성</a>
+            </div>
+        {% endif %}
+
+        <div class="filter-section">
+            <form id="dateForm" method="get" action="/list" class="date-filter">
+                {% if selected_dept %}
+                    <input type="hidden" name="dept" value="{{ selected_dept }}">
+                {% endif %}
+                <input type="date" name="start_date" id="start_date">
+                <input type="date" name="end_date" id="end_date">
+                <button type="button" id="resetDate" class="btn-reset">초기화</button>
+            </form>
+
+            <form action="/list" method="get" class="search-form">
+                {% if selected_dept %}
+                    <input type="hidden" name="dept" value="{{ selected_dept }}">
+                {% endif %}
+                <select name="filter" class="search-select">
+                    <option value="title_content" {{ 'selected' if search_filter=='title_content' else '' }}>제목 + 내용</option>
+                    <option value="category" {{ 'selected' if search_filter=='category' else '' }}>카테고리</option>
+                </select>
+                <input type="text" name="search" value="{{ search_query or '' }}" placeholder="검색어 입력..." class="search-input">
+                <button type="submit" class="search-btn">🔍</button>
+            </form>
+        </div>
+      </div>
+
+
+      {% if search_query %}
+      <div class="search-summary">
+        🔍 
+        {% if user['department'] == '관리자' and selected_dept %}
+          <strong>{{ selected_dept }}</strong> 부서 내 검색 결과:
+        {% else %}
+          검색 결과:
+        {% endif %}
+        <span class="keyword">‘{{ search_query }}’</span>
+        {% if reports|length > 0 %}
+          ({{ reports|length }}건)
+        {% else %}
+          (결과 없음)
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <table>
+        <tr>
+          <th>{{ '부 서 🏢' if user['department'] == '관리자' and not selected_dept else '순 번 🔢' }}</th>
+          <th>제 목 🗒️</th>
+          <th>작성일 ⏰</th>
+          <th>첨 부</th>
+        </tr>
+
+        {% for report in reports %}
+        <tr data-report-id="{{ report.id }}" 
+            data-department="{{ report.department }}" 
+            data-files='{{ (report.files or []) | tojson | safe }}'>
+          <td>
+            {% if user['department'] == '관리자' and not selected_dept %}
+              {{ report.department }}
+            {% else %}
+              {{ loop.index }}
+            {% endif %}
+          </td>
+
+          <td>
+            {% if search_filter == 'category' and report.match_details %}
+              {% for md in report.match_details %}
+                {% set cat = md.category|lower %}
+                {% set class_name = (
+                  'category-purchase' if '구매' in cat
+                  else 'category-admin' if '행정' in cat or '인사' in cat
+                  else 'category-warning' if '경고' in cat
+                  else 'category-hr' if '교육' in cat or '지원' in cat
+                  else 'category-general'
+                ) %}
+                <div class="category-line">
+                    <strong class="{{ class_name }}" onclick="window.open('/view/{{ report.id }}', '_blank')">
+                        {{ md.category }}
+                    </strong>
+                    <span class="finger">👉</span>
+                    <span class="content-text">{{ md.content }}</span>
+                </div>
+              {% endfor %}
+            {% else %}
+              <a href="/view/{{ report.id }}" target="_blank">{{ report.title }}</a>
+            {% endif %}
+          </td>
+
+          <td>{{ (report.date or report.created_at)[:10] }}</td>
+          <td>
+            {% if report.has_files %}
+              <span class="file-icon" title="첨부파일 있음">📑</span>
+            {% else %}
+              <span style="opacity:0.3;">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+      <!-- ✅ 파일 다운로드 팝업 -->
+      <div id="file-popup">
+        <div id="file-popup-content">
+          <h3 style="margin-top:0; margin-bottom:14px; font-weight:600; color:#bde6ff;">
+            📂 첨부파일 다운로드
+          </h3>
+          <ul id="file-list" style="list-style:none; padding:0; margin:0; text-align:left; word-break:break-all;"></ul>
+          <button id="popup-close" style="
+              margin-top:18px;
+              background:linear-gradient(90deg,#00b4ff,#00d4ff);
+              border:none;
+              color:#fff;
+              font-weight:600;
+              padding:8px 18px;
+              border-radius:8px;
+              cursor:pointer;
+              transition: all 0.25s;
+          ">닫기</button>
+        </div>
+      </div>
+
+
+  <script>
+  
+  const startInput = document.getElementById("start_date");
+  const endInput = document.getElementById("end_date");
+  const resetBtn = document.getElementById("resetDate");
+
+  // ✅ 날짜 포맷 함수
+  const formatDate = (d) => d.toISOString().split("T")[0];
+
+  // ✅ 기본값: 2주 전 ~ 오늘
+  const today = new Date();
+  const twoWeeksAgo = new Date();
+  twoWeeksAgo.setDate(today.getDate() - 14);
+
+  // 값이 비어 있으면 기본값 세팅
+  if (!startInput.value) startInput.value = formatDate(twoWeeksAgo);
+  if (!endInput.value) endInput.value = formatDate(today);
+
+  // ✅ 날짜 변경 시 자동 새로고침
+  function updateList() {
+    const start = startInput.value;
+    const end = endInput.value;
+    if (start && end) {
+      const params = new URLSearchParams(window.location.search);
+      params.set("start_date", start);
+      params.set("end_date", end);
+      window.location.search = params.toString();
+    }
+  }
+
+  startInput.addEventListener("change", updateList);
+  endInput.addEventListener("change", updateList);
+
+  // ✅ 초기화 버튼 (2주 전 ~ 오늘로 리셋)
+  resetBtn.addEventListener("click", () => {
+    const now = new Date();
+    const ago = new Date();
+    ago.setDate(now.getDate() - 14);
+    startInput.value = formatDate(ago);
+    endInput.value = formatDate(now);
+
+    const params = new URLSearchParams(window.location.search);
+    params.set("start_date", startInput.value);
+    params.set("end_date", endInput.value);
+    window.location.search = params.toString();
+  });
+
+
+  // ✅ 첨부파일 클릭 시 팝업 열기
+  document.querySelectorAll('.file-icon').forEach(icon => {
+      icon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const row = e.target.closest('tr');
+        const dept = row.dataset.department || "{{ user['department'] }}";
+        const files = JSON.parse(row.dataset.files || "[]");
+
+        const list = document.getElementById('file-list');
+        list.innerHTML = '';
+
+        if (files.length > 0) {
+          files.forEach(name => {
+            const li = document.createElement('li');
+            li.style.marginBottom = '6px';
+            li.innerHTML = `
+              <a href="/uploads/${dept}/${name}" download
+              style="display:inline-block; color:#bde6ff; text-decoration:none; font-weight:500;">
+              📎 ${name}
+              </a>`;
+            list.appendChild(li);
+          });
+        } else {
+          list.innerHTML = `<li style="color:#ccc;">첨부된 파일이 없습니다.</li>`;
+        }
+        document.getElementById('file-popup').style.display = 'block';
+      });
+  });
+
+  // 닫기 버튼
+  document.getElementById('popup-close').addEventListener('click', () => {
+      document.getElementById('file-popup').style.display = 'none';
+  });
+
+  // 배경 클릭 닫기
+  document.getElementById('file-popup').addEventListener('click', (e) => {
+      if (e.target.id === 'file-popup') {
+          document.getElementById('file-popup').style.display = 'none';
+      }
+  });
+  </script>
+</body>
+</html>
+

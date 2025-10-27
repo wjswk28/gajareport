@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ report.title }}</title>
+  <style>
+    :root {
+      --accent: #0ea5e9;
+      --accent-dark: #0b86bf;
+    }
+
+    html, body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%) fixed;
+      background-repeat: no-repeat;
+      background-size: cover;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    .container {
+      width: min(90vw, 850px);
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(18px) saturate(130%);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 18px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+      padding: 50px 60px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #ffffff;
+      text-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    }
+
+    .meta {
+      font-size: 0.95rem;
+      color: #e0f3ff;
+      margin-bottom: 30px;
+    }
+
+    .content {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 14px;
+      padding: 30px 35px;
+      text-align: left;
+      box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      transition: background 0.3s ease;
+    }
+
+    .content-item {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      flex-shrink: 0;
+      min-width: 100px;
+      text-align: center;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-weight: 600;
+      color: #fff;
+      background: rgba(14,165,233,0.25);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+    }
+
+    /* ✅ 카테고리별 색상 지정 */
+    .badge.일반 { background: linear-gradient(135deg, #4cb8c4, #3cd3ad); }
+    .badge.인사행정 { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+    .badge.사건보고 { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+    .badge.구매요청 { background: linear-gradient(135deg, #00b4db, #0083b0); }
+    .badge.요청사항 { background: linear-gradient(135deg, #8e9eab, #eef2f3); color:#000; }
+    .badge.장비수리 { background: linear-gradient(135deg, #43cea2, #185a9d); }
+    .badge.특이사항 { background: linear-gradient(135deg, #667db6, #0082c8); }
+    .badge.익일업무 { background: linear-gradient(135deg, #56ccf2, #2f80ed); }
+
+    .content-text {
+      flex: 1;
+      white-space: pre-line;
+      color: #f8fbff;
+      font-size: 1.2rem;
+      line-height: 1.75;
+    }
+
+    /* ✅ 이미지 섹션 */
+    .image-section {
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    .image-gallery {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .image-gallery img {
+      width: 220px;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.35);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .image-gallery img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.45);
+    }
+
+    /* ✅ 문서 파일 다운로드 섹션 */
+    .file-section {
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    .file-section h3 {
+      color: #eaf6ff;
+      margin-bottom: 15px;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .file-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .file-button {
+      display: inline-block;
+      background: linear-gradient(90deg, #0ea5e9, #00c6ff);
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(14,165,233,0.3);
+      transition: all 0.25s ease;
+    }
+
+    .file-button:hover {
+      background: linear-gradient(90deg, #1cb0f6, #33ccff);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(14,165,233,0.45);
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 35px;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 600;
+      background: linear-gradient(180deg, var(--accent) 0%, #0d9de0 100%);
+      padding: 10px 22px;
+      border-radius: 10px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 10px rgba(14,165,233,.25);
+    }
+
+    .back-link:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 4px 12px rgba(14,165,233,.45);
+    }
+
+    .delete-button {
+      background: linear-gradient(180deg, #ef4444, #dc2626);
+      color: #fff;
+      border: none;
+      font-weight: 600;
+      padding: 10px 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(239,68,68,.35);
+      transition: all 0.25s ease;
+    }
+
+    .delete-button:hover {
+      background: linear-gradient(180deg, #f87171, #dc2626);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(239,68,68,.45);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>{{ report.title }}</h1>
+    <div class="meta">{{ report.department }} | {{ report.created_at }}</div>
+
+    <div class="content">
+      {% if contents %}
+        {% for c in contents %}
+          <div class="content-item">
+            <div class="badge {{ c.category }}">{{ c.category }}</div>
+            <div class="content-text">{{ c.content }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p style="opacity:0.6;">(이 보고서에는 내용이 없습니다.)</p>
+      {% endif %}
+    </div>
+
+    {% if files %}
+      {% set image_files = [] %}
+      {% set doc_files = [] %}
+      {% for f in files %}
+        {% if f.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')) %}
+          {% set _ = image_files.append(f) %}
+        {% else %}
+          {% set _ = doc_files.append(f) %}
+        {% endif %}
+      {% endfor %}
+
+    <!-- ✅ 이미지가 있을 때만 섹션 표시 -->
+    {% if image_files %}
+        <div class="image-section">
+            <div class="image-gallery">
+                {% for f in image_files %}
+                    <div style="text-align:center;">
+                    <!-- ✅ 이미지 미리보기 -->
+                    <a href="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" target="_blank">
+                        <img src="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" alt="첨부 이미지">
+                    </a>
+                    <!-- ✅ 다운로드 버튼 추가 -->
+                    <div style="margin-top:10px;">
+                        <a href="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" 
+                            download
+                            style="
+                                display:inline-block;
+                                background:linear-gradient(90deg,#00b4ff,#00d4ff);
+                                color:#fff;
+                                font-weight:600;
+                                text-decoration:none;
+                                padding:6px 14px;
+                                border-radius:8px;
+                                box-shadow:0 2px 6px rgba(0,0,0,0.2);
+                                transition:0.2s;
+                            "
+                            onmouseover="this.style.filter='brightness(1.15)'"
+                            onmouseout="this.style.filter='brightness(1)'">
+                            📥 이미지 다운로드
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+
+      <!-- ✅ 문서가 있을 때만 섹션 표시 -->
+      {% if doc_files %}
+        <div class="file-section">
+          <h3>📎 첨부 문서</h3>
+          <div class="file-list">
+            {% for f in doc_files %}
+              <a class="file-button" href="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" download>
+                📄 {{ f.filename }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+  <form action="{{ url_for('delete_report', report_id=report.id) }}" method="post" onsubmit="return confirm('정말 이 보고서를 삭제하시겠습니까?');" style="margin-top:25px;">
+    <button type="submit" class="delete-button">🗑️ 보고서 삭제</button>
+  </form>
+
+    <a href="/list" class="back-link">← 목록으로 돌아가기</a>
+  </div>
+</body>
+</html>
