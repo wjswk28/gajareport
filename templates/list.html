@@ -542,16 +542,20 @@
                 <button type="button" id="resetDate" class="btn-reset">초기화</button>
             </form>
 
-            <form action="/list" method="get" class="search-form">
-                {% if selected_dept %}
-                    <input type="hidden" name="dept" value="{{ selected_dept }}">
-                {% endif %}
-                <select name="filter" class="search-select">
-                    <option value="title_content" {{ 'selected' if search_filter=='title_content' else '' }}>제목 + 내용</option>
-                    <option value="category" {{ 'selected' if search_filter=='category' else '' }}>카테고리</option>
-                </select>
-                <input type="text" name="search" value="{{ search_query or '' }}" placeholder="검색어 입력..." class="search-input">
-                <button type="submit" class="search-btn">🔍</button>
+            <form action="/list" method="get" class="search-form" id="searchForm">
+              {% if selected_dept %}
+                  <input type="hidden" name="dept" value="{{ selected_dept }}">
+              {% endif %}
+              <!-- ✅ 날짜 값 전달용 hidden input -->
+              <input type="hidden" name="start_date" id="hiddenStart">
+              <input type="hidden" name="end_date" id="hiddenEnd">
+
+              <select name="filter" class="search-select">
+                  <option value="title_content" {{ 'selected' if search_filter=='title_content' else '' }}>제목 + 내용</option>
+                  <option value="category" {{ 'selected' if search_filter=='category' else '' }}>카테고리</option>
+              </select>
+              <input type="text" name="search" value="{{ search_query or '' }}" placeholder="검색어 입력..." class="search-input">
+              <button type="submit" class="search-btn">🔍</button>
             </form>
         </div>
       </div>
@@ -664,19 +668,27 @@
   // ✅ 날짜 포맷 함수
   const formatDate = (d) => d.toISOString().split("T")[0];
 
-  // ✅ 기본값: 2주 전 ~ 오늘
+  // ✅ 기본값(2주 전 ~ 오늘)
   const today = new Date();
   const twoWeeksAgo = new Date();
   twoWeeksAgo.setDate(today.getDate() - 14);
 
-  // ✅ 페이지 최초 진입 시, URL에 날짜 파라미터 없으면 기본값 설정
+  // ✅ URL 파라미터 읽기
   const urlParams = new URLSearchParams(window.location.search);
-  if (!urlParams.get("start_date") && !urlParams.get("end_date")) {
+  const paramStart = urlParams.get("start_date");
+  const paramEnd = urlParams.get("end_date");
+
+  // ✅ URL 파라미터가 있으면 그 값을 input에 넣기
+  if (paramStart) startInput.value = paramStart;
+  if (paramEnd) endInput.value = paramEnd;
+
+  // ✅ 파라미터가 없으면 기본값(최초 진입)
+  if (!paramStart && !paramEnd) {
     startInput.value = formatDate(twoWeeksAgo);
     endInput.value = formatDate(today);
   }
 
-  // ✅ 날짜 변경 시 리스트 새로고침
+  // ✅ 날짜 변경 시 → URL 파라미터 갱신 후 새로고침
   function updateList() {
     const start = startInput.value;
     const end = endInput.value;
@@ -690,9 +702,8 @@
 
   startInput.addEventListener("change", updateList);
   endInput.addEventListener("change", updateList);
-  
 
-  // ✅ 초기화 버튼 (기본값으로 복원)
+  // ✅ 초기화 버튼 → 기본값으로 복귀
   resetBtn.addEventListener("click", () => {
     const now = new Date();
     const ago = new Date();
@@ -704,6 +715,13 @@
     params.set("start_date", startInput.value);
     params.set("end_date", endInput.value);
     window.location.search = params.toString();
+  });
+
+  // ✅ 검색 시 현재 날짜를 hidden input으로 전달
+  const searchForm = document.getElementById("searchForm");
+  searchForm.addEventListener("submit", () => {
+    document.getElementById("hiddenStart").value = startInput.value;
+    document.getElementById("hiddenEnd").value = endInput.value;
   });
 
 
