@@ -657,7 +657,6 @@
 
 
   <script>
-  
   const startInput = document.getElementById("start_date");
   const endInput = document.getElementById("end_date");
   const resetBtn = document.getElementById("resetDate");
@@ -670,11 +669,14 @@
   const twoWeeksAgo = new Date();
   twoWeeksAgo.setDate(today.getDate() - 14);
 
-  // 값이 비어 있으면 기본값 세팅
-  if (!startInput.value) startInput.value = formatDate(twoWeeksAgo);
-  if (!endInput.value) endInput.value = formatDate(today);
+  // ✅ 페이지 최초 진입 시, URL에 날짜 파라미터 없으면 기본값 설정
+  const urlParams = new URLSearchParams(window.location.search);
+  if (!urlParams.get("start_date") && !urlParams.get("end_date")) {
+    startInput.value = formatDate(twoWeeksAgo);
+    endInput.value = formatDate(today);
+  }
 
-  // ✅ 날짜 변경 시 자동 새로고침
+  // ✅ 날짜 변경 시 리스트 새로고침
   function updateList() {
     const start = startInput.value;
     const end = endInput.value;
@@ -688,8 +690,9 @@
 
   startInput.addEventListener("change", updateList);
   endInput.addEventListener("change", updateList);
+  
 
-  // ✅ 초기화 버튼 (2주 전 ~ 오늘로 리셋)
+  // ✅ 초기화 버튼 (기본값으로 복원)
   resetBtn.addEventListener("click", () => {
     const now = new Date();
     const ago = new Date();
