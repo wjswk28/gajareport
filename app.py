@@ -124,6 +124,8 @@ def create_report():
 
     if request.method == "POST":
         title = request.form.get("title", "").strip()
+        if not title:
+            title = '일일보고서'
         date_input = request.form.get("date", "").strip()
         categories = request.form.getlist("category[]")
         contents   = request.form.getlist("content[]")

@@ -614,7 +614,10 @@
                 </div>
               {% endfor %}
             {% else %}
-              <a href="/view/{{ report.id }}" target="_blank">{{ report.title }}</a>
+              <a href="/view/{{ report.id }}" 
+                {% if search_query %} target="_blank" {% endif %}>
+                {{ report.title }}
+              </a>
             {% endif %}
           </td>
 

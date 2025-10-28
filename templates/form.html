@@ -201,14 +201,14 @@
       <input type="date" id="date" name="date" value="{{ today }}">
 
       <label for="title">제목</label>
-      <input type="text" id="title" name="title" placeholder="보고서 제목을 입력하세요" required>
+      <input type="text" id="title" name="title" placeholder="보고서 제목을 입력하세요">
 
       <div class="label-row">
         <span class="label-text">내용</span>
         <select name="category[]" id="category">
           <option value="구매요청">구매요청</option>
           <option value="인사행정">인사행정</option>
-          <option value="일반">일반</option>
+          <option value="일 반" selected>일 반</option>
           <option value="특이사항">특이사항</option>
           <option value="사건보고">사건보고</option>
           <option value="장비수리">장비수리</option>
@@ -250,7 +250,7 @@
         <select name="category[]" id="category">
           <option value="구매요청">구매요청</option>
           <option value="인사행정">인사행정</option>
-          <option value="일반">일반</option>
+          <option value="일 반" selected>일 반</option>
           <option value="특이사항">특이사항</option>
           <option value="사건보고">사건보고</option>
           <option value="장비수리">장비수리</option>
@@ -267,6 +267,13 @@
     const container = document.getElementById('content-container');
     if (container.children.length > 1) container.lastElementChild.remove();
   }
+  /* ✅ 제목 미입력 시 기본값 자동 설정 */
+  document.querySelector('form').addEventListener('submit', function() {
+    const titleInput = document.getElementById('title');
+    if (!titleInput.value.trim()) {
+      titleInput.value = '일일보고서';
+    }
+  });
 </script>
 
 </body>
