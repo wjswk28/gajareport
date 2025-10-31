@@ -750,10 +750,11 @@
             const li = document.createElement('li');
             li.style.marginBottom = '6px';
             li.innerHTML = `
-              <a href="/download/${dept}/${name}" download
-              style="display:inline-block; color:#bde6ff; text-decoration:none; font-weight:500;">
-              📎 ${name}
+              <a href="/download/${dept}/${name}" download="${name}"
+                style="display:inline-block; color:#bde6ff; text-decoration:none; font-weight:500;">
+                📎 ${name}
               </a>`;
+
             list.appendChild(li);
           });
         } else {

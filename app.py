@@ -538,13 +538,13 @@ def uploaded_file(department, filename):
             data = f.read()
 
         # ✅ 완전한 바이너리 응답 (Render 캐시 우회)
-        response = make_response(data)
-        response.headers["Content-Type"] = mime_type
-        response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{download_name}"
-        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response = send_file(full_path, as_attachment=True, download_name=download_name)
+        response.headers["Content-Type"] = "application/octet-stream"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Content-Disposition"] = f'attachment; filename="{download_name}"'
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0, no-transform"
         response.headers["Pragma"] = "no-cache"
         response.headers["X-Render-Bypass"] = "true"
-
         return response
 
     except Exception as e:
