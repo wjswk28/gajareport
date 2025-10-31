@@ -3,6 +3,7 @@ import re
 import sqlite3
 import mimetypes
 from datetime import datetime, timedelta
+from werkzeug.utils import secure_filename
 from functools import wraps
 from flask import (
     Flask, render_template, request, redirect, url_for, make_response,
@@ -37,16 +38,9 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 # =========================
 # 파일명 정제 함수 (서버 저장용: ASCII Safe 버전)
 # =========================
-def clean_filename(filename: str) -> str:
-    """
-    파일을 서버에 저장하기 위한 안전한 이름 생성
-    - 한글, 특수문자 등은 '_'로 대체
-    - DB에는 원본명(original_name)을 따로 저장함
-    """
-    base, ext = os.path.splitext(filename)
-    safe_base = re.sub(r"[^A-Za-z0-9_\-]+", "_", base)  # 한글/특수문자 → _
-    safe_name = safe_base + ext
-    return safe_name.strip()
+def clean_filename(filename):
+    """Flask 기본 secure_filename()을 사용한 안전 파일명 정제"""
+    return secure_filename(filename)
 
 # =========================
 # DB 연결 및 초기화
