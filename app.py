@@ -507,7 +507,7 @@ def delete_file(report_id, filename):
 # 파일 미리보기/다운로드
 # =========================
 
-@app.route("/uploads/<department>/<path:filename>")
+@app.route("/download/<department>/<path:filename>")
 @login_required
 def uploaded_file(department, filename):
     """첨부파일 다운로드 (Render 완벽 대응 버전)"""
