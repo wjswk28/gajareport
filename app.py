@@ -5,10 +5,9 @@ import mimetypes
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import (
-    Flask, render_template, request, redirect, url_for,
+    Flask, render_template, request, redirect, url_for, make_response,
     session, send_file, send_from_directory, flash, jsonify, Response
 )
-
 app = Flask(__name__, template_folder="templates")
 app.secret_key = "gaja_yonsei_secret_key"
 
@@ -507,10 +506,11 @@ def delete_file(report_id, filename):
 # =========================
 # 파일 미리보기/다운로드
 # =========================
+
 @app.route("/uploads/<department>/<path:filename>")
 @login_required
 def uploaded_file(department, filename):
-    """첨부파일 다운로드 (Render 환경 완벽 대응 + MIME 자동 감지)"""
+    """첨부파일 다운로드 (Render 완벽 대응 버전)"""
     upload_path = os.path.join(app.config["UPLOAD_FOLDER"], department)
     full_path = os.path.join(upload_path, filename)
 
@@ -529,17 +529,21 @@ def uploaded_file(department, filename):
 
         download_name = file_info["original_name"] if file_info and file_info["original_name"] else filename
 
-        with open(full_path, "rb") as f:
-            data = f.read()
-
-        # ✅ MIME 타입 자동 감지
+        # MIME 타입 자동 추정
         mime_type, _ = mimetypes.guess_type(full_path)
         mime_type = mime_type or "application/octet-stream"
 
-        response = Response(data, mimetype=mime_type)
+        # 파일 읽기
+        with open(full_path, "rb") as f:
+            data = f.read()
+
+        # ✅ 완전한 바이너리 응답 (Render 캐시 우회)
+        response = make_response(data)
+        response.headers["Content-Type"] = mime_type
         response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{download_name}"
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
+        response.headers["X-Render-Bypass"] = "true"
 
         return response
 
