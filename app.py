@@ -425,5 +425,11 @@ def uploaded_file(department, filename):
 # 실행
 # =========================
 if __name__ == "__main__":
-    init_db()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    db_path = os.path.join(BASE_DIR, "reports.db")
+    if not os.path.exists(db_path):
+        print("⚙️ reports.db not found. Creating new database...")
+        from app import init_db
+        init_db()
+        print("✅ reports.db created successfully.")
+    app.run(host="0.0.0.0", port=5000, debug=False)
+
