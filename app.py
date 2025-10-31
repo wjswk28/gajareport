@@ -31,6 +31,15 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 # =========================
 def get_db():
     db_path = os.path.join(BASE_DIR, "reports.db")
+
+    # ✅ Render 환경에서도 자동으로 DB 생성
+    if not os.path.exists(db_path):
+        print("⚙️ reports.db not found. Creating new database (Render auto-init)...")
+        conn = sqlite3.connect(db_path)
+        conn.close()
+        init_db()
+        print("✅ reports.db created successfully on server.")
+
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
