@@ -185,13 +185,30 @@ def create_report():
         if files:
             dept_path = os.path.join(app.config["UPLOAD_FOLDER"], dept)
             os.makedirs(dept_path, exist_ok=True)
+
             for f in files:
                 if f.filename:
-                    safe_name = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{secure_filename(f.filename)}"
-                    f.save(os.path.join(dept_path, safe_name))
+                    original_name = secure_filename(f.filename)
+                    save_path = os.path.join(dept_path, original_name)
+
+                    # 같은 이름 존재 시 숫자 붙이기
+                    counter = 1
+                    while os.path.exists(save_path):
+                        name, ext = os.path.splitext(original_name)
+                        new_name = f"{name}_{counter}{ext}"
+                        save_path = os.path.join(dept_path, new_name)
+                        counter += 1
+
+                    # 파일 저장
+                    f.save(save_path)
+
+                    # DB에 실제 저장된 파일명과 원본명 함께 기록
                     cur.execute(
-                        "INSERT INTO report_files (report_id, department, filename) VALUES (?, ?, ?)",
-                        (report_id, dept, safe_name)
+                        """
+                        INSERT INTO report_files (report_id, department, filename, original_name)
+                        VALUES (?, ?, ?, ?)
+                        """,
+                        (report_id, dept, os.path.basename(save_path), original_name)
                     )
 
         conn.commit()
@@ -487,24 +504,39 @@ def delete_file(report_id, filename):
 @app.route("/uploads/<department>/<path:filename>")
 @login_required
 def uploaded_file(department, filename):
-    """첨부파일 다운로드 및 미리보기 (안정형)"""
+    """첨부파일 다운로드 및 미리보기 (원본 이름 복원형)"""
     upload_path = os.path.join(app.config["UPLOAD_FOLDER"], department)
     full_path = os.path.join(upload_path, filename)
 
+    # 파일 존재 여부 확인
     if not os.path.exists(full_path):
         return jsonify({"status": "error", "message": "파일이 존재하지 않습니다."}), 404
 
     try:
-        # Flask 2.x부터는 send_file()이 더 안전하고, 다운로드 이름 지정 가능
+        # DB에서 original_name 조회
+        conn = get_db()
+        cur = conn.cursor()
+        file_info = cur.execute(
+            "SELECT original_name FROM report_files WHERE department = ? AND filename = ?",
+            (department, filename)
+        ).fetchone()
+        conn.close()
+
+        # DB에 original_name이 있으면 그 이름으로 다운로드, 없으면 현재 이름 사용
+        download_name = file_info["original_name"] if file_info and file_info["original_name"] else filename
+
+        # 파일 전송
         return send_file(
             full_path,
-            as_attachment=True,             # 항상 다운로드 되도록
-            download_name=filename,         # 파일 이름 그대로 유지
-            mimetype="application/octet-stream"  # 모든 파일 형식 대응
+            as_attachment=True,
+            download_name=download_name,     # 원본 이름으로 다운로드
+            mimetype="application/octet-stream"
         )
+
     except Exception as e:
         print(f"❌ File serving error: {e}")
         return jsonify({"status": "error", "message": "파일 전송 중 오류가 발생했습니다."}), 500
+
 
 # =========================
 # 실행
