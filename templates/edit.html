@@ -222,6 +222,27 @@
         background: linear-gradient(135deg, #38bdf8, #0ea5e9);
         transform: translateY(-2px);
     }
+
+    .drop-zone {
+      border: 2px dashed #0ea5e9;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      color: #fff;
+      background-color: rgba(255,255,255,0.1);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .drop-zone.active {
+      border-color: #38bdf8;
+      background-color: rgba(14,165,233,0.2);
+    }
+    #fileList {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      color: #e5e7eb;
+      text-align: left;
+    }
     
   </style>
 </head>
@@ -260,12 +281,13 @@
       <!-- 📎 파일 업로드 섹션 -->
       <div class="file-upload-section">
         <h3>📎 첨부파일 관리</h3>
-        <div id="drop-zone">
-          <p>📂 파일을 이곳에 끌어다 놓거나 클릭하여 선택하세요</p>
-          <p style="font-size:0.9rem;opacity:0.8;">여러 폴더에서도 순차적으로 추가할 수 있습니다.</p>
+        <div id="dropZone" class="drop-zone">
+          <p>📎 여기에 파일을 드래그하거나 클릭하여 첨부하세요</p>
+          <input type="file" id="fileInput" name="new_files" multiple style="display:none;">
         </div>
-        <input type="file" id="fileInput" name="new_files[]" multiple style="display:none;">
-        <div id="file-list">
+
+        <div id="fileList"></div>
+
           {% for f in files %}
             <div>
               <span>📄 {{ f.filename }}</span>
@@ -293,9 +315,9 @@
       const container=document.getElementById('content-container');
       const addRowBtn=document.getElementById('addRowBtn');
       const removeRowBtn=document.getElementById('removeRowBtn');
-      const dropZone=document.getElementById('drop-zone');
-      const fileInput=document.getElementById('fileInput');
-      const fileList=document.getElementById('file-list');
+      const dropZone = document.getElementById('dropZone');
+      const fileInput = document.getElementById('fileInput');
+      const fileList = document.getElementById('fileList');
       let selectedFiles=[];
 
       addRowBtn.addEventListener('click',()=>{
@@ -319,47 +341,41 @@
         container.appendChild(block);
       });
 
-      removeRowBtn.addEventListener('click',()=>{
-        if(container.children.length>1) container.lastElementChild.remove();
+      // ✅ 클릭 시 파일 선택창 열기
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      // ✅ 파일 선택(클릭)
+      fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
       });
 
-      // 📂 파일 드래그앤드롭 업로드
-      dropZone.addEventListener('click',()=>fileInput.click());
-      dropZone.addEventListener('dragover',e=>{
+      // ✅ 드래그 앤 드롭 이벤트 처리
+      dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.classList.add('dragover');
+        dropZone.classList.add('active');
       });
-      dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('dragover'));
-      dropZone.addEventListener('drop',e=>{
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+      dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.classList.remove('dragover');
+        dropZone.classList.remove('active');
         handleFiles(e.dataTransfer.files);
       });
-      fileInput.addEventListener('change',e=>{
-        fileList.innerHTML = "";
-        for(let f of e.target.files){
-          const div=document.createElement('div');
-          div.innerHTML=`<span>📄 ${f.name}</span>`;
+
+      // ✅ 파일 목록 갱신
+      function handleFiles(files) {
+        const dt = new DataTransfer();  // 🔥 핵심: drop된 파일을 input.files로 넣기
+        for (const file of files) {
+          dt.items.add(file);
+        }
+        fileInput.files = dt.files;  // 👈 이렇게 해야 폼 전송 시 포함됨
+
+        fileList.innerHTML = ""; // 목록 초기화 후 다시 표시
+        for (const file of fileInput.files) {
+          const div = document.createElement("div");
+          div.textContent = `📄 ${file.name}`;
           fileList.appendChild(div);
         }
-      });
-
-      function updateFileList(){
-        selectedFiles.forEach((f,i)=>{
-          const div=document.createElement('div');
-          div.innerHTML=`<span>📄 ${f.name}</span>
-          <button type="button" class="remove-file" data-idx="${i}">❌</button>`;
-          fileList.appendChild(div);
-        });
       }
-
-      fileList.addEventListener('click',e=>{
-        if(e.target.classList.contains('remove-file')){
-          const idx=e.target.dataset.idx;
-          selectedFiles.splice(idx,1);
-          e.target.parentElement.remove();
-        }
-      });
 
       // 기존 파일 삭제 요청
       document.querySelectorAll('.remove-file-existing').forEach(btn=>{
