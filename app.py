@@ -13,39 +13,48 @@ app = Flask(__name__, template_folder="templates")
 app.secret_key = "gaja_yonsei_secret_key"
 
 # -------------------------------
-# 업로드 폴더 설정
+# 업로드 폴더 및 DB 경로 설정 (Persistent Disk)
 # -------------------------------
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
+
+# Render Persistent Disk 경로
+DATA_DIR = "/var/data"
+DB_PATH = os.path.join(DATA_DIR, "reports.db")
+UPLOAD_FOLDER = os.path.join(DATA_DIR, "uploads")
+
+# 폴더 생성 (없으면 자동 생성)
+os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# 부서별 하위 폴더도 자동 생성
 DEPT_LIST = ["외래", "병동", "수술실", "상담실"]
 for dept in ["관리자", *DEPT_LIST]:
     os.makedirs(os.path.join(UPLOAD_FOLDER, dept), exist_ok=True)
 
+# Flask 설정 등록
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
 # =========================
-# DB
+# DB 연결 및 초기화
 # =========================
 def get_db():
-    db_path = os.path.join(BASE_DIR, "reports.db")
-
-    # ✅ Render 환경에서도 자동으로 DB 생성
-    if not os.path.exists(db_path):
-        print("⚙️ reports.db not found. Creating new database (Render auto-init)...")
-        conn = sqlite3.connect(db_path)
-        conn.close()
+    """DB 연결 및 자동 생성"""
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR, exist_ok=True)
+    if not os.path.exists(DB_PATH):
+        print("⚙️ reports.db not found. Creating new persistent database...")
         init_db()
-        print("✅ reports.db created successfully on server.")
-
-    conn = sqlite3.connect(db_path)
+        print("✅ reports.db created successfully at /var/data")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def init_db():
-    conn = get_db()
+    """DB 초기화"""
+    conn = sqlite3.connect(DB_PATH)
     conn.execute("""
         CREATE TABLE IF NOT EXISTS reports (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -75,6 +84,7 @@ def init_db():
     """)
     conn.commit()
     conn.close()
+
 
 # =========================
 # Auth
