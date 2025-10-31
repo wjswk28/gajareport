@@ -255,7 +255,7 @@
         <div class="file-list">
           {% for f in doc_files %}
             <a class="file-button" href="{{ url_for('uploaded_file', department=f.department, filename=f.filename|urlencode) }}" download>
-              📎 {{ f.filename }}
+              📎 {{ f.original_name or f.filename }}
             </a>
           {% endfor %}
         </div>

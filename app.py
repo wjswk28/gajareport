@@ -152,18 +152,25 @@ def create_report():
         ).fetchone()[0]
         next_local_id = (last_local or 0) + 1
 
-        # ✅ 날짜 입력이 없으면 오늘 날짜 자동
+        # ✅ 날짜 입력이 없으면 오늘 날짜 자동 지정
         if date_input:
-            created_at = f"{date_input} 00:00:00"
+            report_date = date_input
         else:
-            date_input = datetime.now().strftime("%Y-%m-%d")
-            created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            report_date = datetime.now().strftime("%Y-%m-%d")
 
+        # ✅ 작성 시각은 항상 실제 작성 시간으로
+        created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # ✅ DB 저장
         cur.execute(
-            "INSERT INTO reports (local_id, title, date, department, created_at) VALUES (?, ?, ?, ?, ?)",
-            (next_local_id, title, date_input, dept, created_at)
+            """
+            INSERT INTO reports (local_id, title, date, department, created_at)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (next_local_id, title, report_date, dept, created_at)
         )
         report_id = cur.lastrowid
+
 
         # ✅ 카테고리/내용 저장
         for cat, cont in zip(categories, contents):
@@ -321,34 +328,60 @@ def view_report(report_id):
 # =========================
 # 보고서 수정 (edit.html)
 # =========================
-@app.route('/edit/<int:report_id>', methods=['GET', 'POST'])
+@app.route("/edit/<int:report_id>", methods=["GET", "POST"])
 @login_required
 def edit_report(report_id):
     conn = get_db()
     cur = conn.cursor()
 
-    if request.method == 'GET':
+    if request.method == "GET":
         report = cur.execute("SELECT * FROM reports WHERE id = ?", (report_id,)).fetchone()
         contents = cur.execute("SELECT * FROM report_contents WHERE report_id = ?", (report_id,)).fetchall()
         files = cur.execute("SELECT * FROM report_files WHERE report_id = ?", (report_id,)).fetchall()
         conn.close()
         return render_template("edit.html", report=report, contents=contents, files=files)
 
+    # ------------------------------
     # POST - 수정 저장
-    categories = request.form.getlist('categories[]')
-    contents = request.form.getlist('contents[]')
-    new_files = request.files.getlist('new_files')
+    # ------------------------------
+    title = request.form.get("title", "").strip() or "일일보고서"
+    date_input = request.form.get("date", "").strip()
+    categories = request.form.getlist("categories[]")
+    contents = request.form.getlist("contents[]")
+    new_files = request.files.getlist("new_files")
     dept = session["user"]["department"]
 
-    cur.execute('DELETE FROM report_contents WHERE report_id = ?', (report_id,))
+    # ✅ 날짜 입력 없으면 기존 날짜 유지
+    if date_input:
+        report_date = date_input
+    else:
+        old_date = cur.execute("SELECT date FROM reports WHERE id = ?", (report_id,)).fetchone()
+        report_date = old_date["date"] if old_date else datetime.now().strftime("%Y-%m-%d")
+
+    # ✅ 수정 시각 갱신 (created_at 컬럼에 반영)
+    updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # ✅ 보고서 기본 정보 수정
+    cur.execute(
+        """
+        UPDATE reports
+        SET title = ?, date = ?, created_at = ?
+        WHERE id = ?
+        """,
+        (title, report_date, updated_at, report_id)
+    )
+
+    # ✅ 기존 내용 삭제 후 다시 저장
+    cur.execute("DELETE FROM report_contents WHERE report_id = ?", (report_id,))
     for cat, text in zip(categories, contents):
         if text.strip():
             cur.execute(
-                'INSERT INTO report_contents (report_id, category, content) VALUES (?, ?, ?)',
+                "INSERT INTO report_contents (report_id, category, content) VALUES (?, ?, ?)",
                 (report_id, cat, text.strip())
             )
 
-    upload_folder = os.path.join(app.config['UPLOAD_FOLDER'], dept)
+    # ✅ 첨부파일 업로드 처리
+    upload_folder = os.path.join(app.config["UPLOAD_FOLDER"], dept)
     os.makedirs(upload_folder, exist_ok=True)
 
     for file in new_files:
@@ -356,7 +389,7 @@ def edit_report(report_id):
             original_name = secure_filename(file.filename)
             save_path = os.path.join(upload_folder, original_name)
 
-            # 같은 이름이 존재하면 숫자 붙이기
+            # 같은 이름이 존재하면 숫자 붙이기 (덮어쓰기 방지)
             counter = 1
             while os.path.exists(save_path):
                 name, ext = os.path.splitext(original_name)
@@ -364,18 +397,23 @@ def edit_report(report_id):
                 save_path = os.path.join(upload_folder, new_name)
                 counter += 1
 
+            # 파일 저장
             file.save(save_path)
 
+            # DB에 저장된 파일명 + 원본 이름 기록
             cur.execute(
-                'INSERT INTO report_files (report_id, department, filename) VALUES (?, ?, ?)',
-                (report_id, dept, os.path.basename(save_path))
+                """
+                INSERT INTO report_files (report_id, department, filename, original_name)
+                VALUES (?, ?, ?, ?)
+                """,
+                (report_id, dept, os.path.basename(save_path), original_name)
             )
-
 
     conn.commit()
     conn.close()
     flash("✅ 보고서가 수정되었습니다.")
-    return redirect(url_for('view_report', report_id=report_id))
+    return redirect(url_for("view_report", report_id=report_id))
+
 
 # =========================
 # 보고서 삭제
