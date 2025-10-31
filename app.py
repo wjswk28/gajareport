@@ -35,17 +35,18 @@ for dept in ["관리자", *DEPT_LIST]:
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
-# 🔹 파일명 정제 함수 (한글·특수문자 허용 버전)
+# 파일명 정제 함수 (서버 저장용: ASCII Safe 버전)
 # =========================
 def clean_filename(filename: str) -> str:
     """
-    한글/공백/괄호 등은 유지하되,
-    경로 탐색 문자(/, \) 및 OS 금지문자 <>:"|?* 만 제거
+    파일을 서버에 저장하기 위한 안전한 이름 생성
+    - 한글, 특수문자 등은 '_'로 대체
+    - DB에는 원본명(original_name)을 따로 저장함
     """
-    filename = filename.replace("/", "_").replace("\\", "_")
-    filename = re.sub(r'[<>:"|?*]', "_", filename)
-    return filename.strip()
-
+    base, ext = os.path.splitext(filename)
+    safe_base = re.sub(r"[^A-Za-z0-9_\-]+", "_", base)  # 한글/특수문자 → _
+    safe_name = safe_base + ext
+    return safe_name.strip()
 
 # =========================
 # DB 연결 및 초기화
