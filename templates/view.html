@@ -6,19 +6,17 @@
   <style>
     :root {
       --accent: #0ea5e9;
-      --accent-dark: #0b86bf;
+      --accent-dark: #0284c7;
     }
 
     html, body {
       font-family: 'Noto Sans KR', sans-serif;
       background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%) fixed;
-      background-repeat: no-repeat;
-      background-size: cover;
-      min-height: 100vh;
       margin: 0;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
+      min-height: 100vh;
       color: #fff;
     }
 
@@ -35,72 +33,51 @@
 
     h1 {
       font-size: 1.8rem;
-      font-weight: 700;
       margin-bottom: 20px;
-      color: #ffffff;
-      text-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      color: #fff;
     }
 
     .meta {
-      font-size: 0.95rem;
-      color: #e0f3ff;
-      margin-bottom: 30px;
+      opacity: 0.85;
+      margin-bottom: 25px;
     }
 
     .content {
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 14px;
-      padding: 30px 35px;
       text-align: left;
+      background: rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 25px 30px;
+      border: 1px solid rgba(255,255,255,0.2);
       box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
-      backdrop-filter: blur(14px) saturate(140%);
-      -webkit-backdrop-filter: blur(14px) saturate(140%);
-      transition: background 0.3s ease;
     }
 
     .content-item {
       display: flex;
-      align-items: center;
-      gap: 18px;
+      gap: 16px;
       margin-bottom: 20px;
+      align-items: flex-start;
     }
 
     .badge {
       flex-shrink: 0;
-      min-width: 100px;
-      text-align: center;
-      padding: 6px 12px;
-      border-radius: 12px;
-      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 10px;
       color: #fff;
-      background: rgba(14,165,233,0.25);
-      border: 1px solid rgba(255,255,255,0.3);
-      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+      font-weight: 600;
+      text-align: center;
+      min-width: 90px;
+      background: linear-gradient(90deg, var(--accent), #00b4ff);
     }
-
-    /* ✅ 카테고리별 색상 지정 */
-    .badge.일반 { background: linear-gradient(135deg, #4cb8c4, #3cd3ad); }
-    .badge.인사행정 { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
-    .badge.사건보고 { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
-    .badge.구매요청 { background: linear-gradient(135deg, #00b4db, #0083b0); }
-    .badge.요청사항 { background: linear-gradient(135deg, #8e9eab, #eef2f3); color:#000; }
-    .badge.장비수리 { background: linear-gradient(135deg, #43cea2, #185a9d); }
-    .badge.특이사항 { background: linear-gradient(135deg, #667db6, #0082c8); }
-    .badge.익일업무 { background: linear-gradient(135deg, #56ccf2, #2f80ed); }
 
     .content-text {
       flex: 1;
       white-space: pre-line;
-      color: #f8fbff;
-      font-size: 1.2rem;
-      line-height: 1.75;
+      font-size: 1.05rem;
+      line-height: 1.6;
     }
 
-    /* ✅ 이미지 섹션 */
     .image-section {
-      margin-top: 40px;
-      text-align: center;
+      margin-top: 35px;
     }
 
     .image-gallery {
@@ -108,96 +85,116 @@
       flex-wrap: wrap;
       justify-content: center;
       gap: 20px;
-      align-items: center;
     }
 
     .image-gallery img {
-      width: 220px;
-      height: auto;
+      width: 200px;
       border-radius: 12px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.35);
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+      transition: 0.25s;
     }
 
     .image-gallery img:hover {
       transform: scale(1.05);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.45);
     }
 
-    /* ✅ 문서 파일 다운로드 섹션 */
     .file-section {
-      margin-top: 40px;
-      text-align: center;
-    }
-
-    .file-section h3 {
-      color: #eaf6ff;
-      margin-bottom: 15px;
-      font-weight: 600;
-      font-size: 1.1rem;
+      margin-top: 35px;
     }
 
     .file-list {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .file-button {
       display: inline-block;
-      background: linear-gradient(90deg, #0ea5e9, #00c6ff);
+      background: linear-gradient(90deg,#0ea5e9,#00c6ff);
       color: #fff;
       text-decoration: none;
       padding: 8px 16px;
       border-radius: 8px;
-      font-size: 0.95rem;
       font-weight: 600;
       box-shadow: 0 4px 10px rgba(14,165,233,0.3);
-      transition: all 0.25s ease;
+      transition: 0.2s;
     }
 
     .file-button:hover {
-      background: linear-gradient(90deg, #1cb0f6, #33ccff);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(14,165,233,0.45);
+      background: linear-gradient(90deg,#33ccff,#0ea5e9);
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      margin-top: 30px;
     }
 
     .back-link {
       display: inline-block;
-      margin-top: 35px;
-      color: #ffffff;
-      text-decoration: none;
-      font-weight: 600;
-      background: linear-gradient(180deg, var(--accent) 0%, #0d9de0 100%);
+      background: linear-gradient(90deg,#0ea5e9,#00b4ff);
+      color: white;
       padding: 10px 22px;
       border-radius: 10px;
-      transition: all 0.25s ease;
-      box-shadow: 0 4px 10px rgba(14,165,233,.25);
+      margin-top: 20px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: 0.25s;
     }
 
     .back-link:hover {
-      background: var(--accent-dark);
-      box-shadow: 0 4px 12px rgba(14,165,233,.45);
+      background: #0284c7;
     }
 
-    .delete-button {
-      background: linear-gradient(180deg, #ef4444, #dc2626);
-      color: #fff;
-      border: none;
+    /* 버튼 공통 스타일 */
+    .btn-edit,
+    .btn-delete {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 140px;     /* 균일한 가로 크기 */
+      height: 46px;     /* 균일한 세로 크기 */
+      font-size: 15px;
       font-weight: 600;
-      padding: 10px 24px;
-      border-radius: 10px;
+      border-radius: 14px;
+      text-decoration: none;
+      border: none;
+      color: white;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(239,68,68,.35);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
       transition: all 0.25s ease;
     }
 
-    .delete-button:hover {
-      background: linear-gradient(180deg, #f87171, #dc2626);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 15px rgba(239,68,68,.45);
+    /* 수정 버튼 */
+    .btn-edit {
+      background: linear-gradient(135deg, #3bb0f8, #0ea5e9);
     }
+    .btn-edit:hover {
+      background: linear-gradient(135deg, #5cc8fa, #38bdf8);
+      transform: translateY(-2px);
+    }
+
+    /* 삭제 버튼 */
+    .btn-delete {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    .btn-delete:hover {
+      background: linear-gradient(135deg, #f87171, #dc2626);
+      transform: translateY(-2px);
+    }
+
+    /* === 카테고리별 뱃지 색상 (8가지) === */
+    .category-general  { background: linear-gradient(90deg, #6b7280, #9ca3af); }   /* 일반 */
+    .category-admin    { background: linear-gradient(90deg, #f59e0b, #f97316); }   /* 인사행정 */
+    .category-warning  { background: linear-gradient(90deg, #ef4444, #b91c1c); }   /* 사건보고 */
+    .category-purchase { background: linear-gradient(90deg, #00c6ff, #0072ff); }   /* 구매요청 */
+    .category-request  { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }   /* 요청사항 */
+    .category-repair   { background: linear-gradient(90deg, #0ea5e9, #0284c7); }   /* 장비수리 */
+    .category-special  { background: linear-gradient(90deg, #10b981, #059669); }   /* 특이사항 */
+    .category-tomorrow { background: linear-gradient(90deg, #ec4899, #db2777); }   /* 익일업무 */
 
   </style>
 </head>
@@ -210,7 +207,17 @@
       {% if contents %}
         {% for c in contents %}
           <div class="content-item">
-            <div class="badge {{ c.category }}">{{ c.category }}</div>
+            <div class="badge 
+              {% if '일반' in c.category %}category-general
+              {% elif '인사' in c.category or '행정' in c.category %}category-admin
+              {% elif '사건' in c.category %}category-warning
+              {% elif '구매' in c.category %}category-purchase
+              {% elif '요청' in c.category %}category-request
+              {% elif '수리' in c.category %}category-repair
+              {% elif '특이' in c.category %}category-special
+              {% elif '익일' in c.category %}category-tomorrow
+              {% else %}category-general{% endif %}
+            ">{{ c.category }}</div>
             <div class="content-text">{{ c.content }}</div>
           </div>
         {% endfor %}
@@ -230,62 +237,41 @@
         {% endif %}
       {% endfor %}
 
-    <!-- ✅ 이미지가 있을 때만 섹션 표시 -->
-    {% if image_files %}
-        <div class="image-section">
-            <div class="image-gallery">
-                {% for f in image_files %}
-                    <div style="text-align:center;">
-                    <!-- ✅ 이미지 미리보기 -->
-                    <a href="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" target="_blank">
-                        <img src="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" alt="첨부 이미지">
-                    </a>
-                    <!-- ✅ 다운로드 버튼 추가 -->
-                    <div style="margin-top:10px;">
-                        <a href="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" 
-                            download
-                            style="
-                                display:inline-block;
-                                background:linear-gradient(90deg,#00b4ff,#00d4ff);
-                                color:#fff;
-                                font-weight:600;
-                                text-decoration:none;
-                                padding:6px 14px;
-                                border-radius:8px;
-                                box-shadow:0 2px 6px rgba(0,0,0,0.2);
-                                transition:0.2s;
-                            "
-                            onmouseover="this.style.filter='brightness(1.15)'"
-                            onmouseout="this.style.filter='brightness(1)'">
-                            📥 이미지 다운로드
-                        </a>
-                    </div>
-                </div>
-            {% endfor %}
-            </div>
+      {% if image_files %}
+      <div class="image-section">
+        <div class="image-gallery">
+          {% for f in image_files %}
+            <a href="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" target="_blank">
+              <img src="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" alt="첨부 이미지">
+            </a>
+          {% endfor %}
         </div>
-    {% endif %}
+      </div>
+      {% endif %}
 
-
-      <!-- ✅ 문서가 있을 때만 섹션 표시 -->
       {% if doc_files %}
-        <div class="file-section">
-          <h3>📎 첨부 문서</h3>
-          <div class="file-list">
-            {% for f in doc_files %}
-              <a class="file-button" href="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" download>
-                📄 {{ f.filename }}
-              </a>
-            {% endfor %}
-          </div>
+      <div class="file-section">
+        <div class="file-list">
+          {% for f in doc_files %}
+            <a class="file-button" href="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" download>
+              📎 {{ f.filename }}
+            </a>
+          {% endfor %}
         </div>
+      </div>
       {% endif %}
     {% endif %}
-  <form action="{{ url_for('delete_report', report_id=report.id) }}" method="post" onsubmit="return confirm('정말 이 보고서를 삭제하시겠습니까?');" style="margin-top:25px;">
-    <button type="submit" class="delete-button">🗑️ 보고서 삭제</button>
-  </form>
 
-    <a href="/list" class="back-link">← 목록으로 돌아가기</a>
+    <div class="action-buttons">
+      <a href="{{ url_for('edit_report', report_id=report.id) }}" class="btn-edit">
+        ✏️ 수정
+      </a>
+      <form action="{{ url_for('delete_report', report_id=report.id) }}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');" style="display:inline;">
+        <button type="submit" class="btn-delete">🗑️ 보고서 삭제</button>
+      </form>
+    </div>
+
+    <a href="{{ url_for('report_list') }}" class="back-link">← 목록으로 돌아가기</a>
   </div>
 </body>
 </html>

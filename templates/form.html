@@ -1,21 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>보고서 작성</title>
   <style>
     :root {
       --accent: #0ea5e9;
       --accent-dark: #0b86bf;
-      --glass-bg: rgba(255,255,255,0.15);
-      --glass-border: rgba(255,255,255,0.25);
-      --glass-shadow: 0 8px 32px rgba(0,0,0,0.25);
     }
 
-    body {
+    html, body {
       font-family: 'Noto Sans KR', sans-serif;
-      background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%);
+      background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%) fixed;
       min-height: 100vh;
       margin: 0;
       display: flex;
@@ -24,257 +20,350 @@
       color: #fff;
     }
 
-    .glass-card {
-      width: min(90vw, 750px);
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px) saturate(120%);
-      -webkit-backdrop-filter: blur(20px) saturate(120%);
-      border: 1px solid var(--glass-border);
-      border-radius: 16px;
-      box-shadow: var(--glass-shadow);
-      padding: 40px 50px;
+    .container {
+      width: min(90vw, 850px);
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(18px) saturate(130%);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 18px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+      padding: 50px 60px;
       box-sizing: border-box;
-      color: #f0f6fa;
+      text-align: left;
     }
 
     h1 {
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 1.6em;
+      font-size: 1.8rem;
       font-weight: 700;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      text-align: center;
+      margin-bottom: 25px;
     }
 
     label {
       display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: #eaf6ff;
-      font-weight: 500;
+      font-weight: 600;
+      margin-bottom: 6px;
     }
 
-    input[type="text"], input[type="date"], textarea {
+    input[type="text"],
+    input[type="date"],
+    textarea {
       width: 100%;
-      background: rgba(255,255,255,0.18);
-      border: 1px solid rgba(255,255,255,0.3);
+      padding: 10px;
       border-radius: 10px;
+      border: none;
+      background: rgba(255,255,255,0.15);
       color: #fff;
-      font-size: 14px;
-      padding: 10px 14px;
-      margin-bottom: 20px;
-      outline: none;
-      transition: all 0.2s ease;
+      font-size: 1rem;
       box-sizing: border-box;
-      backdrop-filter: blur(8px);
-    }
-
-    input:focus, textarea:focus, select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 8px rgba(14,165,233,0.35);
-      background: rgba(255,255,255,0.25);
+      resize: vertical;
     }
 
     textarea {
-      resize: vertical;
-      min-height: 90px;
+      min-height: 80px;
+      line-height: 1.6;
     }
 
-    /* ✅ 내용과 카테고리 드롭다운 완벽 세로 정렬 */
-    .label-row {
-      display: inline-flex !important;
-      align-items: baseline !important; /* 글자 기준선 정렬 */
-      gap: 10px !important;
-      margin-bottom: 10px !important;
-    }
-
-    .label-row .label-text {
-      font-size: 14px !important;
-      font-weight: 600 !important;
-      color: #ffffff !important;
-      line-height: 1.2 !important;
-    }
-
-    .label-row select {
-      height: auto !important;
-      padding: 2px 10px !important;
-      border-radius: 8px !important;
-      border: 1px solid rgba(255,255,255,0.3) !important;
-      background: rgba(255,255,255,0.18) !important;
-      color: #fff !important;
-      font-size: 14px !important;
-      min-width: 120px !important;
-      width: auto !important;
-      text-align-last: center !important;
-      backdrop-filter: blur(8px) !important;
-      appearance: auto !important;
-      vertical-align: middle !important;
-    }
-
-    .label-row select option {
-      background: #ffffff;        /* 옵션 박스 흰 배경 */
-      color: #333333;             /* 텍스트는 어두운 회색 */
-      font-weight: 500;
-      border: none;
-    }
-
-    /* ✅ 선택된 옵션은 약간의 강조 */
-    .label-row select option:checked {
-      background: #e6f3ff;        /* 연한 하늘색 강조 */
-      color: #000000;
-    }
-
-    .actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    button {
-      border: none;
-      border-radius: 10px;
-      padding: 10px 18px;
+    select {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.2);
+      color: #fff;
       font-weight: 600;
-      cursor: pointer;
-      transition: all 0.25s ease;
+      backdrop-filter: blur(10px);
+      text-align: center;
+      text-align-last: center;
     }
 
-    .btn-add {
-      background: rgba(255,255,255,0.25);
-      border: 1px solid rgba(255,255,255,0.3);
-      color: #fff;
+    select option {
+      color: #000;
+      text-align: left;
+      font-weight: 500;
     }
 
-    .btn-delete {
-      background: rgba(255,77,77,0.25);
-      border: 1px solid rgba(255,77,77,0.4);
-      color: #fff;
-    }
-
-    .btn-add:hover { background: rgba(255,255,255,0.35); }
-    .btn-delete:hover { background: rgba(255,77,77,0.4); }
-
-    .file-input {
-      margin-top: 10px;
+    .section {
       margin-bottom: 25px;
     }
 
-    .btn-save {
-      background: linear-gradient(90deg, #2b83f6, #66a6ff);
-      color: #fff;
-      width: 100%;
-      font-size: 16px;
-      margin-top: 10px;
+    .label-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .label-text {
       font-weight: 600;
-      box-shadow: 0 4px 10px rgba(14,165,233,0.3);
-    }
-
-    .btn-save:hover {
-      background: linear-gradient(90deg, #3b8cf7, #76b0ff);
-      transform: translateY(-2px);
-    }
-
-    a.btn-return {
-      display: inline-block;
-      text-decoration: none;
-      text-align: center;
-      margin-top: 15px;
-      padding: 10px 18px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 10px;
       color: #fff;
-      transition: 0.25s;
     }
 
-    a.btn-return:hover {
-      background: rgba(255,255,255,0.25);
+    .content-wrapper {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+    }
+
+    /* ✅ 파일 첨부 (드래그 & 드롭) 스타일 */
+    .file-upload-section {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .file-upload-section h3 {
+      margin-bottom: 10px;
+    }
+
+    #drop-zone {
+      border: 2px dashed rgba(255,255,255,0.5);
+      border-radius: 12px;
+      padding: 30px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    #drop-zone:hover {
+      background: rgba(255,255,255,0.2);
+      transform: scale(1.01);
+    }
+
+    #drop-zone.dragover {
+      background: rgba(14,165,233,0.25);
+      border-color: #0ea5e9;
+    }
+
+    #file-list {
+      margin-top: 15px;
+      text-align: left;
+      font-size: 0.95rem;
+      color: #e0f3ff;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    #file-list div {
+      background: rgba(255,255,255,0.12);
+      margin-bottom: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .remove-file {
+      background: transparent;
+      border: none;
+      color: #ff7b7b;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+
+    /* ✅ 버튼 디자인 */
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.25s ease;
+      color: #fff;
+    }
+
+    .btn-submit {
+      background: linear-gradient(180deg, #0ea5e9, #0284c7);
+      box-shadow: 0 4px 10px rgba(14,165,233,.3);
+    }
+
+    .btn-submit:hover {
+      background: linear-gradient(180deg, #0284c7, #0369a1);
+    }
+
+    .btn-cancel {
+      background: linear-gradient(180deg, #6b7280, #4b5563);
+      box-shadow: 0 4px 10px rgba(75,85,99,.3);
+    }
+
+    .btn-cancel:hover {
+      background: linear-gradient(180deg, #4b5563, #374151);
+    }
+
+    .form-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 30px;
+    }
+
+    /* ✅ 목록으로 돌아가기 버튼 */
+    .back-link {
+      display: inline-block;
+      margin-top: 30px;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 600;
+      background: linear-gradient(180deg, var(--accent) 0%, #0d9de0 100%);
+      padding: 10px 22px;
+      border-radius: 10px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 10px rgba(14,165,233,.25);
+    }
+
+    .back-link:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 4px 12px rgba(14,165,233,.45);
     }
 
   </style>
 </head>
 <body>
-  <div class="glass-card">
-    <h1>보고서 작성</h1>
-
-    <form method="POST" action="/create" enctype="multipart/form-data">
-      <label for="date">날짜</label>
-      <input type="date" id="date" name="date" value="{{ today }}">
-
-      <label for="title">제목</label>
-      <input type="text" id="title" name="title" placeholder="보고서 제목을 입력하세요">
-
-      <div class="label-row">
-        <span class="label-text">내용</span>
-        <select name="category[]" id="category">
-          <option value="구매요청">구매요청</option>
-          <option value="인사행정">인사행정</option>
-          <option value="일 반" selected>일 반</option>
-          <option value="특이사항">특이사항</option>
-          <option value="사건보고">사건보고</option>
-          <option value="장비수리">장비수리</option>
-          <option value="익일업무">익일업무</option>
-          <option value="요청사항">요청사항</option>
-        </select>
+  <div class="container">
+    <h1>📋 보고서 작성</h1>
+    <form action="/create" method="POST" enctype="multipart/form-data">
+      
+      <div class="section">
+        <label for="date">날짜</label>
+        <input type="date" name="date" id="date" value="{{ today }}">
       </div>
 
-      <div id="content-container">
+      <div class="section">
+        <label for="title">제목</label>
+        <input type="text" name="title" id="title" placeholder="보고서 제목을 입력하세요" required>
+      </div>
+
+      <div class="section" id="content-container">
         <div class="content-wrapper">
-          <textarea name="content[]" placeholder="내용을 입력하세요"></textarea>
+          <div class="label-row">
+            <span class="label-text">내용</span>
+            <select name="category[]" required>
+              <option value="일 반" selected>일 반</option>
+              <option value="인사행정">인사행정</option>
+              <option value="사건보고">사건보고</option>
+              <option value="구매요청">구매요청</option>
+              <option value="요청사항">요청사항</option>
+              <option value="장비수리">장비수리</option>
+              <option value="특이사항">특이사항</option>
+              <option value="익일업무">익일업무</option>
+            </select>
+          </div>
+          <textarea name="content[]" placeholder="내용을 입력하세요" required></textarea>
         </div>
       </div>
 
-      <div class="actions">
-        <button type="button" class="btn-add" onclick="addContent()">+ 추가</button>
-        <button type="button" class="btn-delete" onclick="removeLast()">− 삭제</button>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+        <button type="button" class="btn" style="background:rgba(255,255,255,0.25);" id="addRowBtn">＋ 추가</button>
+        <button type="button" class="btn" style="background:rgba(255,77,77,0.25);" id="removeRowBtn">－ 삭제</button>
       </div>
 
-      <div class="file-input">
-        <label>파일 첨부 (여러 개 선택 가능)</label>
-        <input type="file" name="files" multiple>
+      <!-- ✅ 파일 첨부 섹션 -->
+      <div class="file-upload-section">
+        <h3>📎 첨부파일</h3>
+        <div id="drop-zone">
+          <p>📂 파일을 이곳에 끌어다 놓거나 클릭하여 선택하세요</p>
+          <p style="font-size:0.9rem; opacity:0.8;">여러 폴더의 파일도 순차적으로 추가할 수 있습니다.</p>
+        </div>
+        <input type="file" id="fileInput" name="files" multiple style="display:none">
+        <div id="file-list"></div>
       </div>
 
-      <button type="submit" class="btn-save">저장</button>
-      <a href="/list" class="btn-return">← 목록으로 돌아가기</a>
+      <!-- ✅ 저장 버튼 (폼 스타일 유지) -->
+      <div class="form-buttons">
+        <button type="submit" class="btn btn-submit">💾 저장</button>
+      </div>
+
+      <!-- ✅ 목록으로 돌아가기 버튼 -->
+      <div style="text-align:center;">
+        <a href="/list" class="back-link">← 목록으로 돌아가기</a>
+      </div>
     </form>
   </div>
 
-<script>
-  function addContent() {
-    const container = document.getElementById('content-container');
-    const block = document.createElement('div');
-    block.className = 'content-wrapper';
-    block.style.marginBottom = '1rem';
-    block.innerHTML = `
-      <div class="label-row">
-        <span class="label-text">내용</span>
-        <select name="category[]" id="category">
-          <option value="구매요청">구매요청</option>
-          <option value="인사행정">인사행정</option>
-          <option value="일 반" selected>일 반</option>
-          <option value="특이사항">특이사항</option>
-          <option value="사건보고">사건보고</option>
-          <option value="장비수리">장비수리</option>
-          <option value="익일업무">익일업무</option>
-          <option value="요청사항">요청사항</option>
-        </select>
-      </div>
-      <textarea name="content[]" placeholder="내용을 입력하세요"></textarea>
-    `;
-    container.appendChild(block);
-  }
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const addRowBtn = document.getElementById("addRowBtn");
+    const removeRowBtn = document.getElementById("removeRowBtn");
+    const container = document.getElementById("content-container");
 
-  function removeLast() {
-    const container = document.getElementById('content-container');
-    if (container.children.length > 1) container.lastElementChild.remove();
-  }
-  /* ✅ 제목 미입력 시 기본값 자동 설정 */
-  document.querySelector('form').addEventListener('submit', function() {
-    const titleInput = document.getElementById('title');
-    if (!titleInput.value.trim()) {
-      titleInput.value = '일일보고서';
+    addRowBtn.addEventListener("click", () => {
+      const block = document.createElement("div");
+      block.className = "content-wrapper";
+      block.innerHTML = `
+        <div class="label-row">
+          <span class="label-text">내용</span>
+          <select name="category[]" required>
+            <option value="일 반" selected>일 반</option>
+            <option value="인사행정">인사행정</option>
+            <option value="사건보고">사건보고</option>
+            <option value="구매요청">구매요청</option>
+            <option value="요청사항">요청사항</option>
+            <option value="장비수리">장비수리</option>
+            <option value="특이사항">특이사항</option>
+            <option value="익일업무">익일업무</option>
+          </select>
+        </div>
+        <textarea name="content[]" placeholder="내용을 입력하세요" required></textarea>
+      `;
+      container.appendChild(block);
+    });
+
+    removeRowBtn.addEventListener("click", () => {
+      if (container.children.length > 1) container.lastElementChild.remove();
+    });
+
+    // 📂 드래그 & 드롭 업로드
+    const dropZone = document.getElementById("drop-zone");
+    const fileInput = document.getElementById("fileInput");
+    const fileList = document.getElementById("file-list");
+    let selectedFiles = [];
+
+    dropZone.addEventListener("click", () => fileInput.click());
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.classList.add("dragover");
+    });
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("dragover");
+    });
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("dragover");
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+
+    function handleFiles(files) {
+      for (let f of files) selectedFiles.push(f);
+      updateFileList();
     }
-  });
-</script>
 
+    function updateFileList() {
+      fileList.innerHTML = "";
+      selectedFiles.forEach((f, idx) => {
+        const item = document.createElement("div");
+        item.innerHTML = `
+          <span>📄 ${f.name}</span>
+          <button type="button" class="remove-file" data-idx="${idx}">❌</button>
+        `;
+        fileList.appendChild(item);
+      });
+      document.querySelectorAll(".remove-file").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          selectedFiles.splice(e.target.dataset.idx, 1);
+          updateFileList();
+        });
+      });
+    }
+
+    const form = document.querySelector("form");
+    form.addEventListener("submit", (e) => {
+      const dataTransfer = new DataTransfer();
+      selectedFiles.forEach(f => dataTransfer.items.add(f));
+      fileInput.files = dataTransfer.files;
+    });
+  });
+  </script>
 </body>
 </html>

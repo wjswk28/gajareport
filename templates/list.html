@@ -405,11 +405,20 @@
     }
 
 
+ 
+
+
+
     .category-purchase { background: linear-gradient(90deg, #00c6ff, #0072ff); }
     .category-admin { background: linear-gradient(90deg, #f59e0b, #f97316); }
     .category-hr { background: linear-gradient(90deg, #22c55e, #16a34a); }
     .category-warning { background: linear-gradient(90deg, #ef4444, #b91c1c); }
     .category-general { background: linear-gradient(90deg, #6b7280, #9ca3af); }
+    .category-request  { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }   /* 요청사항 */
+    .category-repair   { background: linear-gradient(90deg, #0ea5e9, #0284c7); }   /* 장비수리 */
+    .category-special  { background: linear-gradient(90deg, #10b981, #059669); }   /* 특이사항 */
+    .category-tomorrow { background: linear-gradient(90deg, #ec4899, #db2777); }   /* 익일업무 */
+
 
     td {
         vertical-align: middle;  /* 셀 자체를 중앙으로 */
@@ -487,142 +496,6 @@
     @keyframes fadeIn {
       from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
       to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    }
-
-    /* ✅ 반응형 모바일 디자인 */
-    @media (max-width: 768px) {
-
-      body {
-        padding: 20px 10px;
-      }
-
-      .wrapper {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 20px;
-      }
-
-      /* 사이드바를 상단으로 이동 */
-      .sidebar {
-        width: 100%;
-        text-align: center;
-        padding: 15px;
-      }
-
-      .dept-list a {
-        padding: 8px;
-        font-size: 0.9rem;
-      }
-
-      .container {
-        padding: 25px 18px;
-      }
-
-      h1 {
-        font-size: 1.2rem;
-        margin-bottom: 15px;
-      }
-
-      /* ✅ 날짜 필터와 검색창 세로 정렬 */
-      .filter-section {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-      }
-
-      .date-filter,
-      .search-form {
-        width: 100%;
-        box-sizing: border-box;
-      }
-
-      .date-filter input[type="date"] {
-        font-size: 0.8rem;
-        flex: 1;
-      }
-
-      .btn-reset {
-        font-size: 0.8rem;
-        padding: 0 10px;
-      }
-
-      .search-input {
-        width: 100%;
-        font-size: 0.9rem;
-      }
-
-      .search-select {
-        font-size: 0.9rem;
-      }
-
-      .btn {
-        height: 38px;
-        font-size: 0.9rem;
-      }
-
-      /* ✅ 테이블을 가로 스크롤 가능하게 */
-      table {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-        font-size: 0.9rem;
-      }
-
-      th, td {
-        padding: 10px;
-        word-break: keep-all;
-      }
-
-      /* 첨부파일 팝업도 모바일 중앙 정렬 */
-      #file-popup-content {
-        width: 90%;
-        padding: 20px;
-      }
-
-      /* ✅ 모바일 환경에서 테이블 헤더 간소화 */
-      /* 아이콘 제거 */
-      th {
-        white-space: nowrap;           /* 줄바꿈 방지 */
-        font-size: 0.9rem;
-        text-align: center;
-      }
-
-      /* ✅ 헤더 텍스트에서 이모지(아이콘) 제거 */
-      th::after {
-        content: "";                   /* 강제로 아무것도 표시하지 않음 */
-      }
-
-      /* 각 헤더의 실제 텍스트만 남기기 */
-      th:nth-child(1)::before { content: "순번"; }
-      th:nth-child(2)::before { content: "제목"; }
-      th:nth-child(3)::before { content: "작성일"; }
-      th:nth-child(4)::before { content: "첨부"; }
-
-      /* 기존 내용 숨기기 (아이콘 포함) */
-      th span, th i, th img {
-        display: none !important;
-      }
-
-      /* 기존 th 안의 텍스트 숨기기 */
-      th {
-        color: transparent;
-        position: relative;
-      }
-
-      /* 새로운 텍스트 스타일 */
-      th::before {
-        color: #ffffff;
-        font-weight: 600;
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-      }
-
-      /* "첨부" 줄바꿈 방지 */
-      th:nth-child(4)::before {
-        white-space: nowrap;
-      }
     }
 
   </style>
@@ -736,23 +609,26 @@
               {% for md in report.match_details %}
                 {% set cat = md.category|lower %}
                 {% set class_name = (
-                  'category-purchase' if '구매' in cat
-                  else 'category-admin' if '행정' in cat or '인사' in cat
-                  else 'category-warning' if '경고' in cat
-                  else 'category-hr' if '교육' in cat or '지원' in cat
+                  'category-general'  if '일반' in cat
+                  else 'category-admin'   if '인사' in cat or '행정' in cat
+                  else 'category-warning' if '사건' in cat
+                  else 'category-purchase' if '구매' in cat
+                  else 'category-request'  if '요청' in cat
+                  else 'category-repair'   if '수리' in cat
+                  else 'category-special'  if '특이' in cat
+                  else 'category-tomorrow' if '익일' in cat
                   else 'category-general'
                 ) %}
                 <div class="category-line">
-                    <strong class="{{ class_name }}" onclick="window.open('/view/{{ report.id }}', '_blank')">
-                        {{ md.category }}
-                    </strong>
-                    <span class="finger">👉</span>
-                    <span class="content-text">{{ md.content }}</span>
+                  <strong class="{{ class_name }}" onclick="window.open('/view/{{ report.id }}', '_blank')">
+                    {{ md.category }}
+                  </strong>
+                  <span class="finger">👉</span>
+                  <span class="content-text">{{ md.content }}</span>
                 </div>
               {% endfor %}
             {% else %}
-              <a href="/view/{{ report.id }}" 
-                {% if search_query %} target="_blank" {% endif %}>
+              <a href="/view/{{ report.id }}" {% if search_query %}target="_blank"{% endif %}>
                 {{ report.title }}
               </a>
             {% endif %}
