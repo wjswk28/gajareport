@@ -264,7 +264,7 @@
           <p>📂 파일을 이곳에 끌어다 놓거나 클릭하여 선택하세요</p>
           <p style="font-size:0.9rem;opacity:0.8;">여러 폴더에서도 순차적으로 추가할 수 있습니다.</p>
         </div>
-        <input type="file" id="fileInput" name="new_files" multiple style="display:none;">
+        <input type="file" id="fileInput" name="new_files[]" multiple style="display:none;">
         <div id="file-list">
           {% for f in files %}
             <div>
@@ -335,12 +335,14 @@
         dropZone.classList.remove('dragover');
         handleFiles(e.dataTransfer.files);
       });
-      fileInput.addEventListener('change',e=>handleFiles(e.target.files));
-
-      function handleFiles(files){
-        for(let f of files) selectedFiles.push(f);
-        updateFileList();
-      }
+      fileInput.addEventListener('change',e=>{
+        fileList.innerHTML = "";
+        for(let f of e.target.files){
+          const div=document.createElement('div');
+          div.innerHTML=`<span>📄 ${f.name}</span>`;
+          fileList.appendChild(div);
+        }
+      });
 
       function updateFileList(){
         selectedFiles.forEach((f,i)=>{
