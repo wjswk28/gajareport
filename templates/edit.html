@@ -224,26 +224,31 @@
     }
 
     .drop-zone {
-      border: 2px dashed #0ea5e9;
+      margin-top: 10px;
+      border: 2px dashed rgba(255,255,255,0.5);
       border-radius: 12px;
-      padding: 20px;
+      padding: 25px;
       text-align: center;
       color: #fff;
-      background-color: rgba(255,255,255,0.1);
-      transition: all 0.2s;
+      background-color: rgba(255,255,255,0.15);
+      transition: 0.25s;
       cursor: pointer;
     }
     .drop-zone.active {
-      border-color: #38bdf8;
+      border-color: #0ea5e9;
       background-color: rgba(14,165,233,0.2);
     }
-    #fileList {
-      margin-top: 12px;
-      font-size: 0.95rem;
-      color: #e5e7eb;
+    .file-list {
+      margin-top: 10px;
       text-align: left;
+      color: #f9fafb;
+      font-size: 0.95rem;
     }
-    
+    .file-item {
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+        
   </style>
 </head>
 <body>
@@ -281,27 +286,29 @@
       <!-- 📎 파일 업로드 섹션 -->
       <div class="file-upload-section">
         <h3>📎 첨부파일 관리</h3>
+
         <div id="dropZone" class="drop-zone">
           <p>📎 여기에 파일을 드래그하거나 클릭하여 첨부하세요</p>
           <input type="file" id="fileInput" name="new_files" multiple style="display:none;">
         </div>
 
+        <!-- 새로 추가한 파일 목록 -->
         <div id="fileList"></div>
 
-          {% for f in files %}
-            <div>
-              <span>📄 {{ f.filename }}</span>
-              <button type="button" class="remove-file-existing" data-file="{{ f.filename }}">❌</button>
-            </div>
-          {% endfor %}
+        <!-- 기존 업로드된 파일 목록 -->
+        {% for f in files %}
+        <div class="existing-file">
+          <span>📄 {{ f.filename }}</span>
+          <button type="button" class="remove-file-existing" data-file="{{ f.filename }}">❌</button>
         </div>
+        {% endfor %}
       </div>
 
-        <!-- 저장 / 취소 -->
-        <div class="form-buttons">
-            <button type="submit" class="save-button">💾 저장</button>
-            <a href="{{ url_for('view_report', report_id=report.id) }}" class="cancel-button">취소</a>
-        </div>
+      <!-- 저장 / 취소 버튼 -->
+      <div class="form-buttons">
+        <button type="submit" class="save-button">💾 저장</button>
+        <a href="{{ url_for('view_report', report_id=report.id) }}" class="cancel-button">취소</a>
+      </div>
     </form>
 
     <!-- 폼 외부에 목록으로 돌아가기 -->
@@ -315,9 +322,9 @@
       const container=document.getElementById('content-container');
       const addRowBtn=document.getElementById('addRowBtn');
       const removeRowBtn=document.getElementById('removeRowBtn');
-      const dropZone = document.getElementById('dropZone');
-      const fileInput = document.getElementById('fileInput');
-      const fileList = document.getElementById('fileList');
+      const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("fileInput");
+      const fileList = document.getElementById("fileList");
       let selectedFiles=[];
 
       addRowBtn.addEventListener('click',()=>{
@@ -341,38 +348,42 @@
         container.appendChild(block);
       });
 
-      // ✅ 클릭 시 파일 선택창 열기
-      dropZone.addEventListener('click', () => fileInput.click());
+      // 클릭 시 파일 선택
+      dropZone.addEventListener("click", () => fileInput.click());
 
-      // ✅ 파일 선택(클릭)
-      fileInput.addEventListener('change', (e) => {
-        handleFiles(e.target.files);
+      // 드래그 진입 시 시각효과
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("active");
       });
 
-      // ✅ 드래그 앤 드롭 이벤트 처리
-      dropZone.addEventListener('dragover', (e) => {
+      // 드래그 이탈 시 효과 제거
+      dropZone.addEventListener("dragleave", () => dropZone.classList.remove("active"));
+
+      // 드롭 시 파일 처리
+      dropZone.addEventListener("drop", (e) => {
         e.preventDefault();
-        dropZone.classList.add('active');
-      });
-      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
-      dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('active');
+        dropZone.classList.remove("active");
         handleFiles(e.dataTransfer.files);
       });
 
-      // ✅ 파일 목록 갱신
+      // 파일 선택 시 처리
+      fileInput.addEventListener("change", (e) => {
+        handleFiles(e.target.files);
+      });
+
       function handleFiles(files) {
-        const dt = new DataTransfer();  // 🔥 핵심: drop된 파일을 input.files로 넣기
+        const dt = new DataTransfer();
         for (const file of files) {
           dt.items.add(file);
         }
-        fileInput.files = dt.files;  // 👈 이렇게 해야 폼 전송 시 포함됨
+        fileInput.files = dt.files;
 
-        fileList.innerHTML = ""; // 목록 초기화 후 다시 표시
+        fileList.innerHTML = "";
         for (const file of fileInput.files) {
           const div = document.createElement("div");
-          div.textContent = `📄 ${file.name}`;
+          div.classList.add("file-item");
+          div.textContent = "📄 " + file.name;
           fileList.appendChild(div);
         }
       }
