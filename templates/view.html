@@ -241,8 +241,9 @@
       <div class="image-section">
         <div class="image-gallery">
           {% for f in image_files %}
-            <a href="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" target="_blank">
-              <img src="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" alt="첨부 이미지">
+            <a href="{{ url_for('uploaded_file', department=f.department, filename=f.filename|urlencode) }}" target="_blank">
+              <img src="{{ url_for('uploaded_file', department=f.department, filename=f.filename|urlencode) }}"
+                alt="{{ f.filename }}">
             </a>
           {% endfor %}
         </div>
@@ -253,7 +254,7 @@
       <div class="file-section">
         <div class="file-list">
           {% for f in doc_files %}
-            <a class="file-button" href="{{ url_for('uploaded_file', department=f.department, filename=f.filename) }}" download>
+            <a class="file-button" href="{{ url_for('uploaded_file', department=f.department, filename=f.filename|urlencode) }}" download>
               📎 {{ f.filename }}
             </a>
           {% endfor %}

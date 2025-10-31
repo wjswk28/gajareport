@@ -435,20 +435,30 @@ def delete_file(report_id, filename):
 # =========================
 # 파일 미리보기/다운로드
 # =========================
-@app.route("/uploads/<department>/<filename>")
+@app.route("/uploads/<department>/<path:filename>")
+@login_required
 def uploaded_file(department, filename):
+    """첨부파일 다운로드 및 미리보기"""
     upload_path = os.path.join(app.config["UPLOAD_FOLDER"], department)
-    return send_from_directory(upload_path, filename)
+    full_path = os.path.join(upload_path, filename)
+
+    if not os.path.exists(full_path):
+        return jsonify({"status": "error", "message": "파일이 존재하지 않습니다."}), 404
+
+    try:
+        return send_from_directory(upload_path, filename, as_attachment=False)
+    except Exception as e:
+        print(f"❌ File serving error: {e}")
+        return jsonify({"status": "error", "message": "파일 전송 중 오류가 발생했습니다."}), 500
 
 # =========================
 # 실행
 # =========================
 if __name__ == "__main__":
-    db_path = os.path.join(BASE_DIR, "reports.db")
-    if not os.path.exists(db_path):
-        print("⚙️ reports.db not found. Creating new database...")
-        from app import init_db
+    if not os.path.exists(DB_PATH):
+        print("⚙️ reports.db not found. Creating new persistent database...")
         init_db()
-        print("✅ reports.db created successfully.")
+        print("✅ reports.db created successfully at /var/data")
     app.run(host="0.0.0.0", port=5000, debug=False)
+
 
