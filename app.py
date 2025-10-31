@@ -1,14 +1,13 @@
 import os
+import re
 import sqlite3
 from datetime import datetime, timedelta
 from functools import wraps
-from werkzeug.utils import secure_filename
 from flask import (
     Flask, render_template, request, redirect, url_for,
     session, send_file, send_from_directory, flash, jsonify, Response
 )
 
-app = Flask(__name__)
 app = Flask(__name__, template_folder="templates")
 app.secret_key = "gaja_yonsei_secret_key"
 
@@ -35,6 +34,18 @@ for dept in ["관리자", *DEPT_LIST]:
 # Flask 설정 등록
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+# =========================
+# 🔹 파일명 정제 함수 (한글·특수문자 허용 버전)
+# =========================
+def clean_filename(filename: str) -> str:
+    """
+    한글/공백/괄호 등은 유지하되,
+    경로 탐색 문자(/, \) 및 OS 금지문자 <>:"|?* 만 제거
+    """
+    filename = filename.replace("/", "_").replace("\\", "_")
+    filename = re.sub(r'[<>:"|?*]', "_", filename)
+    return filename.strip()
+
 
 # =========================
 # DB 연결 및 초기화
@@ -53,7 +64,6 @@ def get_db():
 
 
 def init_db():
-    """DB 초기화"""
     conn = sqlite3.connect(DB_PATH)
     conn.execute("""
         CREATE TABLE IF NOT EXISTS reports (
@@ -79,12 +89,12 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             report_id INTEGER,
             department TEXT,
-            filename TEXT
+            filename TEXT,
+            original_name TEXT
         )
     """)
     conn.commit()
     conn.close()
-
 
 # =========================
 # Auth
@@ -152,13 +162,7 @@ def create_report():
         ).fetchone()[0]
         next_local_id = (last_local or 0) + 1
 
-        # ✅ 날짜 입력이 없으면 오늘 날짜 자동 지정
-        if date_input:
-            report_date = date_input
-        else:
-            report_date = datetime.now().strftime("%Y-%m-%d")
-
-        # ✅ 작성 시각은 항상 실제 작성 시간으로
+        report_date = date_input or datetime.now().strftime("%Y-%m-%d")
         created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # ✅ DB 저장
@@ -188,13 +192,14 @@ def create_report():
 
             for f in files:
                 if f.filename:
-                    original_name = secure_filename(f.filename)
-                    save_path = os.path.join(dept_path, original_name)
+                    original_name = f.filename
+                    safe_name = clean_filename(original_name)
+                    save_path = os.path.join(dept_path, safe_name)
 
                     # 같은 이름 존재 시 숫자 붙이기
                     counter = 1
                     while os.path.exists(save_path):
-                        name, ext = os.path.splitext(original_name)
+                        name, ext = os.path.splitext(safe_name)
                         new_name = f"{name}_{counter}{ext}"
                         save_path = os.path.join(dept_path, new_name)
                         counter += 1
@@ -403,13 +408,13 @@ def edit_report(report_id):
 
     for file in new_files:
         if file and file.filename:
-            original_name = secure_filename(file.filename)
-            save_path = os.path.join(upload_folder, original_name)
+            original_name = file.filename
+            safe_name = clean_filename(original_name)
+            save_path = os.path.join(upload_folder, safe_name)
 
-            # 같은 이름이 존재하면 숫자 붙이기 (덮어쓰기 방지)
             counter = 1
             while os.path.exists(save_path):
-                name, ext = os.path.splitext(original_name)
+                name, ext = os.path.splitext(safe_name)
                 new_name = f"{name}_{counter}{ext}"
                 save_path = os.path.join(upload_folder, new_name)
                 counter += 1
@@ -504,16 +509,14 @@ def delete_file(report_id, filename):
 @app.route("/uploads/<department>/<path:filename>")
 @login_required
 def uploaded_file(department, filename):
-    """첨부파일 다운로드 및 미리보기 (Render 캐시 완전 우회 + 원본 이름 복원)"""
+    """Render 환경 호환 — 원본 이름 복원 + 캐시 완전 차단"""
     upload_path = os.path.join(app.config["UPLOAD_FOLDER"], department)
     full_path = os.path.join(upload_path, filename)
 
-    # 파일 존재 여부 확인
     if not os.path.exists(full_path):
         return jsonify({"status": "error", "message": "파일이 존재하지 않습니다."}), 404
 
     try:
-        # ✅ DB에서 original_name 조회
         conn = get_db()
         cur = conn.cursor()
         file_info = cur.execute(
@@ -522,10 +525,8 @@ def uploaded_file(department, filename):
         ).fetchone()
         conn.close()
 
-        # ✅ 원래 이름이 있으면 복원, 없으면 현재 파일명 사용
         download_name = file_info["original_name"] if file_info and file_info["original_name"] else filename
 
-        # ✅ 파일 내용을 직접 읽어서 Response 객체로 반환 (send_file 대신)
         with open(full_path, "rb") as f:
             data = f.read()
 
@@ -539,6 +540,7 @@ def uploaded_file(department, filename):
     except Exception as e:
         print(f"❌ File serving error: {e}")
         return jsonify({"status": "error", "message": "파일 전송 중 오류가 발생했습니다."}), 500
+
 
 # =========================
 # 실행
