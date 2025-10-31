@@ -353,13 +353,24 @@ def edit_report(report_id):
 
     for file in new_files:
         if file and file.filename:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            safe_name = f"{timestamp}_{secure_filename(file.filename)}"
-            file.save(os.path.join(upload_folder, safe_name))
+            original_name = secure_filename(file.filename)
+            save_path = os.path.join(upload_folder, original_name)
+
+            # 같은 이름이 존재하면 숫자 붙이기
+            counter = 1
+            while os.path.exists(save_path):
+                name, ext = os.path.splitext(original_name)
+                new_name = f"{name}_{counter}{ext}"
+                save_path = os.path.join(upload_folder, new_name)
+                counter += 1
+
+            file.save(save_path)
+
             cur.execute(
                 'INSERT INTO report_files (report_id, department, filename) VALUES (?, ?, ?)',
-                (report_id, dept, safe_name)
+                (report_id, dept, os.path.basename(save_path))
             )
+
 
     conn.commit()
     conn.close()
@@ -438,7 +449,7 @@ def delete_file(report_id, filename):
 @app.route("/uploads/<department>/<path:filename>")
 @login_required
 def uploaded_file(department, filename):
-    """첨부파일 다운로드 및 미리보기"""
+    """첨부파일 다운로드 및 미리보기 (안정형)"""
     upload_path = os.path.join(app.config["UPLOAD_FOLDER"], department)
     full_path = os.path.join(upload_path, filename)
 
@@ -446,7 +457,13 @@ def uploaded_file(department, filename):
         return jsonify({"status": "error", "message": "파일이 존재하지 않습니다."}), 404
 
     try:
-        return send_from_directory(upload_path, filename, as_attachment=False)
+        # Flask 2.x부터는 send_file()이 더 안전하고, 다운로드 이름 지정 가능
+        return send_file(
+            full_path,
+            as_attachment=True,             # 항상 다운로드 되도록
+            download_name=filename,         # 파일 이름 그대로 유지
+            mimetype="application/octet-stream"  # 모든 파일 형식 대응
+        )
     except Exception as e:
         print(f"❌ File serving error: {e}")
         return jsonify({"status": "error", "message": "파일 전송 중 오류가 발생했습니다."}), 500
