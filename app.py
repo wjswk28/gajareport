@@ -504,11 +504,10 @@ def delete_file(report_id, filename):
 # =========================
 # 파일 미리보기/다운로드
 # =========================
-
-@app.route("/uploads/<department>/<path:filename>")
+@app.route("/download/<department>/<path:filename>")
 @login_required
-def uploaded_file(department, filename):
-    """첨부파일 다운로드 (Render 완벽 대응 버전)"""
+def download_file(department, filename):
+    """첨부파일 다운로드 (MIME 강제 지정 + 캐시 차단 + 원본 이름 복원)"""
     upload_path = os.path.join(app.config["UPLOAD_FOLDER"], department)
     full_path = os.path.join(upload_path, filename)
 
@@ -516,7 +515,7 @@ def uploaded_file(department, filename):
         return jsonify({"status": "error", "message": "파일이 존재하지 않습니다."}), 404
 
     try:
-        # DB에서 original_name 조회
+        # DB에서 원본 파일명 조회
         conn = get_db()
         cur = conn.cursor()
         file_info = cur.execute(
@@ -527,28 +526,31 @@ def uploaded_file(department, filename):
 
         download_name = file_info["original_name"] if file_info and file_info["original_name"] else filename
 
-        # MIME 타입 자동 추정
+        # 🔸 MIME 타입 자동 감지 (없으면 기본값)
+        import mimetypes
         mime_type, _ = mimetypes.guess_type(full_path)
-        mime_type = mime_type or "application/octet-stream"
+        if mime_type is None:
+            mime_type = "application/octet-stream"
 
-        # 파일 읽기
-        with open(full_path, "rb") as f:
-            data = f.read()
-
-        # ✅ 완전한 바이너리 응답 (Render 캐시 우회)
-        response = make_response(data)
+        # ✅ 강제 안전 다운로드 헤더 설정
+        response = send_file(
+            full_path,
+            as_attachment=True,
+            download_name=download_name,
+            mimetype=mime_type
+        )
         response.headers["Content-Type"] = mime_type
-        response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{download_name}"
-        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Content-Disposition"] = f'attachment; filename="{download_name}"'
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0, no-transform"
         response.headers["Pragma"] = "no-cache"
+        response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Render-Bypass"] = "true"
 
         return response
 
     except Exception as e:
-        print(f"❌ File serving error: {e}")
+        print(f"❌ File download error: {e}")
         return jsonify({"status": "error", "message": "파일 전송 중 오류가 발생했습니다."}), 500
-
 # =========================
 # 실행
 # =========================
