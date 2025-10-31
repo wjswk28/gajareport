@@ -1,6 +1,7 @@
 import os
 import re
 import sqlite3
+import mimetypes
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import (
@@ -509,7 +510,7 @@ def delete_file(report_id, filename):
 @app.route("/uploads/<department>/<path:filename>")
 @login_required
 def uploaded_file(department, filename):
-    """Render 환경 호환 — 원본 이름 복원 + 캐시 완전 차단"""
+    """첨부파일 다운로드 (Render 환경 완벽 대응 + MIME 자동 감지)"""
     upload_path = os.path.join(app.config["UPLOAD_FOLDER"], department)
     full_path = os.path.join(upload_path, filename)
 
@@ -517,6 +518,7 @@ def uploaded_file(department, filename):
         return jsonify({"status": "error", "message": "파일이 존재하지 않습니다."}), 404
 
     try:
+        # DB에서 original_name 조회
         conn = get_db()
         cur = conn.cursor()
         file_info = cur.execute(
@@ -530,8 +532,12 @@ def uploaded_file(department, filename):
         with open(full_path, "rb") as f:
             data = f.read()
 
-        response = Response(data, mimetype="application/octet-stream")
-        response.headers["Content-Disposition"] = f'attachment; filename="{download_name}"'
+        # ✅ MIME 타입 자동 감지
+        mime_type, _ = mimetypes.guess_type(full_path)
+        mime_type = mime_type or "application/octet-stream"
+
+        response = Response(data, mimetype=mime_type)
+        response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{download_name}"
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
 
@@ -540,7 +546,6 @@ def uploaded_file(department, filename):
     except Exception as e:
         print(f"❌ File serving error: {e}")
         return jsonify({"status": "error", "message": "파일 전송 중 오류가 발생했습니다."}), 500
-
 
 # =========================
 # 실행
