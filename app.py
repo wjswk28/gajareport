@@ -3,7 +3,6 @@ import re
 import sqlite3
 import mimetypes
 from datetime import datetime, timedelta
-from werkzeug.utils import secure_filename
 from functools import wraps
 from flask import (
     Flask, render_template, request, redirect, url_for, make_response,
@@ -36,11 +35,17 @@ for dept in ["관리자", *DEPT_LIST]:
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================
-# 파일명 정제 함수 (서버 저장용: ASCII Safe 버전)
+# 🔹 파일명 정제 함수 (한글·특수문자 허용 버전)
 # =========================
-def clean_filename(filename):
-    """Flask 기본 secure_filename()을 사용한 안전 파일명 정제"""
-    return secure_filename(filename)
+def clean_filename(filename: str) -> str:
+    """
+    한글/공백/괄호 등은 유지하되,
+    경로 탐색 문자(/, \) 및 OS 금지문자 <>:"|?* 만 제거
+    """
+    filename = filename.replace("/", "_").replace("\\", "_")
+    filename = re.sub(r'[<>:"|?*]', "_", filename)
+    return filename.strip()
+
 
 # =========================
 # DB 연결 및 초기화
@@ -502,7 +507,7 @@ def delete_file(report_id, filename):
 # 파일 미리보기/다운로드
 # =========================
 
-@app.route("/download/<department>/<path:filename>")
+@app.route("/uploads/<department>/<path:filename>")
 @login_required
 def uploaded_file(department, filename):
     """첨부파일 다운로드 (Render 완벽 대응 버전)"""
@@ -533,13 +538,13 @@ def uploaded_file(department, filename):
             data = f.read()
 
         # ✅ 완전한 바이너리 응답 (Render 캐시 우회)
-        response = send_file(full_path, as_attachment=True, download_name=download_name)
-        response.headers["Content-Type"] = "application/octet-stream"
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["Content-Disposition"] = f'attachment; filename="{download_name}"'
-        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0, no-transform"
+        response = make_response(data)
+        response.headers["Content-Type"] = mime_type
+        response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{download_name}"
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
         response.headers["X-Render-Bypass"] = "true"
+
         return response
 
     except Exception as e:
