@@ -5,7 +5,7 @@ from functools import wraps
 from werkzeug.utils import secure_filename
 from flask import (
     Flask, render_template, request, redirect, url_for,
-    session, send_file, send_from_directory, flash, jsonify
+    session, send_file, send_from_directory, flash, jsonify, Response
 )
 
 app = Flask(__name__)
@@ -504,10 +504,11 @@ def delete_file(report_id, filename):
 @app.route("/uploads/<department>/<path:filename>")
 @login_required
 def uploaded_file(department, filename):
-    """첨부파일 다운로드 및 미리보기 (원본 이름 복원 + Render 캐시 우회)"""
+    """첨부파일 다운로드 및 미리보기 (Render 캐시 완전 우회 + 원본 이름 복원)"""
     upload_path = os.path.join(app.config["UPLOAD_FOLDER"], department)
     full_path = os.path.join(upload_path, filename)
 
+    # 파일 존재 여부 확인
     if not os.path.exists(full_path):
         return jsonify({"status": "error", "message": "파일이 존재하지 않습니다."}), 404
 
@@ -524,13 +525,11 @@ def uploaded_file(department, filename):
         # ✅ 원래 이름이 있으면 복원, 없으면 현재 파일명 사용
         download_name = file_info["original_name"] if file_info and file_info["original_name"] else filename
 
-        # ✅ 강제 헤더 설정 (Render 캐시 무시 + 브라우저에 정확한 파일명 전달)
-        response = send_file(
-            full_path,
-            as_attachment=True,
-            download_name=download_name,
-            mimetype="application/octet-stream"
-        )
+        # ✅ 파일 내용을 직접 읽어서 Response 객체로 반환 (send_file 대신)
+        with open(full_path, "rb") as f:
+            data = f.read()
+
+        response = Response(data, mimetype="application/octet-stream")
         response.headers["Content-Disposition"] = f'attachment; filename="{download_name}"'
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
@@ -540,7 +539,6 @@ def uploaded_file(department, filename):
     except Exception as e:
         print(f"❌ File serving error: {e}")
         return jsonify({"status": "error", "message": "파일 전송 중 오류가 발생했습니다."}), 500
-
 
 # =========================
 # 실행
