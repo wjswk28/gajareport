@@ -567,7 +567,7 @@ def delete_file(report_id, filename):
 @app.route("/uploads/<department>/<path:filename>")
 @login_required
 def uploaded_file(department, filename):
-    """첨부파일 다운로드 및 미리보기 (한글 이름 + 캐시 무시 + 이미지 호환)"""
+    """첨부파일 다운로드 및 미리보기 (이미지 직접보기, 기타파일 다운로드)"""
     upload_path = os.path.join(app.config["UPLOAD_FOLDER"], department)
     full_path = os.path.join(upload_path, filename)
 
@@ -590,17 +590,25 @@ def uploaded_file(department, filename):
         mime_type, _ = mimetypes.guess_type(full_path)
         mime_type = mime_type or "application/octet-stream"
 
-        # ✅ send_file 사용 (브라우저에서 직접 처리 가능)
-        response = send_file(
-            full_path,
-            as_attachment=True,
-            download_name=download_name,
-            mimetype=mime_type
-        )
+        # ✅ 이미지 파일은 새창 열기 (as_attachment=False)
+        if mime_type.startswith("image/"):
+            response = send_file(
+                full_path,
+                as_attachment=False,
+                mimetype=mime_type
+            )
+        else:
+            # ✅ 나머지는 다운로드 (as_attachment=True)
+            response = send_file(
+                full_path,
+                as_attachment=True,
+                download_name=download_name,
+                mimetype=mime_type
+            )
+            quoted_name = urllib.parse.quote(download_name)
+            response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{quoted_name}"
 
         # ✅ 캐시 방지 헤더
-        quoted_name = urllib.parse.quote(download_name)
-        response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{quoted_name}"
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
         response.headers["X-Render-Bypass"] = "true"
