@@ -747,8 +747,9 @@
 
         if (files.length > 0) {
           files.forEach(file => {
-            const { name, original_name, dept } = file;
-            const displayName = original_name || name;
+            const name = file.filename;
+            const dept = file.department;
+            const displayName = file.original_name || file.filename;
 
             const li = document.createElement('li');
             li.style.marginBottom = '6px';
@@ -762,6 +763,7 @@
         } else {
           list.innerHTML = `<li style="color:#ccc;">첨부된 파일이 없습니다.</li>`;
         }
+
         document.getElementById('file-popup').style.display = 'block';
       });
   });
