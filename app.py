@@ -362,34 +362,40 @@ def report_list():
 def view_report(report_id):
     conn = get_db()
     try:
-        # 보고서 기본정보 + 내용
-        report = conn.execute(
-            "SELECT * FROM reports WHERE id = ?", (report_id,)
-        ).fetchone()
-        contents = conn.execute(
-            "SELECT * FROM report_contents WHERE report_id = ?", (report_id,)
-        ).fetchall()
+        report = conn.execute("SELECT * FROM reports WHERE id = ?", (report_id,)).fetchone()
+        contents = conn.execute("SELECT * FROM report_contents WHERE report_id = ?", (report_id,)).fetchall()
 
-        # 첨부파일 쿼리 — original_name 컬럼이 없을 경우 자동 fallback
+        # 컬럼 확인
         cursor = conn.cursor()
         columns = [col[1] for col in cursor.execute("PRAGMA table_info(report_files)").fetchall()]
+
         if "original_name" in columns:
-            files = cursor.execute("""
+            raw_files = cursor.execute("""
                 SELECT filename, department, original_name
                 FROM report_files
                 WHERE report_id = ?
             """, (report_id,)).fetchall()
         else:
-            files = cursor.execute("""
+            raw_files = cursor.execute("""
                 SELECT filename, department
                 FROM report_files
                 WHERE report_id = ?
             """, (report_id,)).fetchall()
 
+        # ✅ dict로 변환하여 키 누락 방지
+        files = []
+        for f in raw_files:
+            files.append({
+                "filename": f["filename"],
+                "department": f["department"],
+                "original_name": f["original_name"] if "original_name" in f.keys() else None
+            })
+
     finally:
         conn.close()
 
     return render_template("view.html", report=report, contents=contents, files=files)
+
 
 
 
