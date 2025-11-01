@@ -355,17 +355,47 @@ def report_list():
     )
 
 # =========================
-# 보고서 보기
+# 보고서 상세보기
 # =========================
-@app.route('/view/<int:report_id>')
+@app.route("/view/<int:report_id>")
 @login_required
 def view_report(report_id):
     conn = get_db()
-    report = conn.execute("SELECT * FROM reports WHERE id = ?", (report_id,)).fetchone()
-    contents = conn.execute("SELECT * FROM report_contents WHERE report_id = ?", (report_id,)).fetchall()
-    files = conn.execute("SELECT * FROM report_files WHERE report_id = ?", (report_id,)).fetchall()
-    conn.close()
-    return render_template("view.html", report=report, contents=contents, files=files)
+    try:
+        # ✅ 보고서 기본 정보 및 내용
+        report = conn.execute(
+            "SELECT * FROM reports WHERE id = ?", (report_id,)
+        ).fetchone()
+        contents = conn.execute(
+            "SELECT * FROM report_contents WHERE report_id = ?", (report_id,)
+        ).fetchall()
+
+        # ✅ 첨부파일 (original_name 포함, 후방 호환 안전처리)
+        try:
+            files = conn.execute("""
+                SELECT filename, department, original_name
+                FROM report_files
+                WHERE report_id = ?
+            """, (report_id,)).fetchall()
+        except Exception:
+            # 구버전 DB 대비 (original_name 컬럼이 없을 때)
+            files = conn.execute("""
+                SELECT filename, department
+                FROM report_files
+                WHERE report_id = ?
+            """, (report_id,)).fetchall()
+
+    finally:
+        conn.close()
+
+    # ✅ 템플릿 렌더링
+    return render_template(
+        "view.html",
+        report=report,
+        contents=contents,
+        files=files
+    )
+
 
 # =========================
 # 보고서 수정 (edit.html)
