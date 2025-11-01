@@ -362,7 +362,7 @@ def report_list():
 def view_report(report_id):
     conn = get_db()
     try:
-        # ✅ 보고서 기본 정보 및 내용
+        # 보고서 기본정보 + 내용
         report = conn.execute(
             "SELECT * FROM reports WHERE id = ?", (report_id,)
         ).fetchone()
@@ -370,16 +370,17 @@ def view_report(report_id):
             "SELECT * FROM report_contents WHERE report_id = ?", (report_id,)
         ).fetchall()
 
-        # ✅ 첨부파일 (original_name 포함, 후방 호환 안전처리)
-        try:
-            files = conn.execute("""
+        # 첨부파일 쿼리 — original_name 컬럼이 없을 경우 자동 fallback
+        cursor = conn.cursor()
+        columns = [col[1] for col in cursor.execute("PRAGMA table_info(report_files)").fetchall()]
+        if "original_name" in columns:
+            files = cursor.execute("""
                 SELECT filename, department, original_name
                 FROM report_files
                 WHERE report_id = ?
             """, (report_id,)).fetchall()
-        except Exception:
-            # 구버전 DB 대비 (original_name 컬럼이 없을 때)
-            files = conn.execute("""
+        else:
+            files = cursor.execute("""
                 SELECT filename, department
                 FROM report_files
                 WHERE report_id = ?
@@ -388,13 +389,8 @@ def view_report(report_id):
     finally:
         conn.close()
 
-    # ✅ 템플릿 렌더링
-    return render_template(
-        "view.html",
-        report=report,
-        contents=contents,
-        files=files
-    )
+    return render_template("view.html", report=report, contents=contents, files=files)
+
 
 
 # =========================
