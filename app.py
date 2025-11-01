@@ -323,13 +323,22 @@ def report_list():
         for r in base_reports:
             item = dict(r)
             files = conn.execute(
-                "SELECT filename, department FROM report_files WHERE report_id = ?",
+                "SELECT filename, original_name, department FROM report_files WHERE report_id = ?",
                 (r["id"],)
             ).fetchall()
+
             item["has_files"] = len(files) > 0
-            item["files"] = [f["filename"] for f in files]
+            item["files"] = [
+                {
+                    "filename": f["filename"],
+                    "original_name": f["original_name"] or f["filename"],
+                    "department": f["department"]
+                }
+                for f in files
+            ]
             item["match_details"] = []
             enriched.append(item)
+
 
     conn.close()
 
