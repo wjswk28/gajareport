@@ -508,16 +508,15 @@ def delete_file(report_id, filename):
 @app.route("/uploads/<department>/<path:filename>")
 @login_required
 def uploaded_file(department, filename):
-    """첨부파일 다운로드 및 미리보기 (원본 이름 복원 + Render 캐시 우회)"""
+    """첨부파일 다운로드 및 미리보기 (한글 이름 + 캐시 무시 + 이미지 호환)"""
     upload_path = os.path.join(app.config["UPLOAD_FOLDER"], department)
     full_path = os.path.join(upload_path, filename)
 
-    # 파일 존재 여부 확인
     if not os.path.exists(full_path):
         return jsonify({"status": "error", "message": "파일이 존재하지 않습니다."}), 404
 
     try:
-        # ✅ DB에서 원본 이름 조회
+        # DB에서 원래 파일 이름 조회
         conn = get_db()
         cur = conn.cursor()
         file_info = cur.execute(
@@ -526,23 +525,23 @@ def uploaded_file(department, filename):
         ).fetchone()
         conn.close()
 
-        # ✅ DB에 원래 이름이 있으면 복원, 없으면 현재 이름 사용
         download_name = file_info["original_name"] if file_info and file_info["original_name"] else filename
 
-        # ✅ MIME 타입 자동 추정
+        # MIME 타입 자동 추정
         mime_type, _ = mimetypes.guess_type(full_path)
         mime_type = mime_type or "application/octet-stream"
 
-        # ✅ 파일 읽기
-        with open(full_path, "rb") as f:
-            data = f.read()
-
-        # ✅ 완전한 바이너리 응답 (Render 캐시 우회 + 한글 파일명 인코딩)
-        response = make_response(data)
-        response.headers["Content-Type"] = mime_type
-        response.headers["Content-Disposition"] = (
-            f"attachment; filename*=UTF-8''{urllib.parse.quote(download_name)}"
+        # ✅ send_file 사용 (브라우저에서 직접 처리 가능)
+        response = send_file(
+            full_path,
+            as_attachment=True,
+            download_name=download_name,
+            mimetype=mime_type
         )
+
+        # ✅ 캐시 방지 헤더
+        quoted_name = urllib.parse.quote(download_name)
+        response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{quoted_name}"
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
         response.headers["X-Render-Bypass"] = "true"
@@ -552,7 +551,7 @@ def uploaded_file(department, filename):
     except Exception as e:
         print(f"❌ File serving error: {e}")
         return jsonify({"status": "error", "message": "파일 전송 중 오류가 발생했습니다."}), 500
-    
+
 # =========================
 # 실행
 # =========================
