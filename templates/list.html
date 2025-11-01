@@ -746,7 +746,12 @@
         list.innerHTML = '';
 
         if (files.length > 0) {
-          files.forEach(file => {
+        files.forEach(file => {
+            // file이 문자열일 수도 있는 예외 대비 (예: 오래된 데이터)
+            if (typeof file === "string") {
+            file = { filename: file, original_name: file, department: "{{ user['department'] }}" };
+            }
+
             const name = file.filename;
             const dept = file.department;
             const displayName = file.original_name || file.filename;
@@ -754,15 +759,16 @@
             const li = document.createElement('li');
             li.style.marginBottom = '6px';
             li.innerHTML = `
-              <a href="/uploads/${dept}/${encodeURIComponent(name)}" download
+            <a href="/uploads/${dept}/${encodeURIComponent(name)}" download
                 style="display:inline-block; color:#bde6ff; text-decoration:none; font-weight:500;">
                 📎 ${displayName}
-              </a>`;
+            </a>`;
             list.appendChild(li);
-          });
+        });
         } else {
-          list.innerHTML = `<li style="color:#ccc;">첨부된 파일이 없습니다.</li>`;
+        list.innerHTML = `<li style="color:#ccc;">첨부된 파일이 없습니다.</li>`;
         }
+
 
         document.getElementById('file-popup').style.display = 'block';
       });
