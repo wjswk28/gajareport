@@ -365,7 +365,7 @@ def view_report(report_id):
         report = conn.execute("SELECT * FROM reports WHERE id = ?", (report_id,)).fetchone()
         contents = conn.execute("SELECT * FROM report_contents WHERE report_id = ?", (report_id,)).fetchall()
 
-        # 컬럼 확인
+        # 컬럼 확인 및 파일 로드
         cursor = conn.cursor()
         columns = [col[1] for col in cursor.execute("PRAGMA table_info(report_files)").fetchall()]
 
@@ -382,7 +382,7 @@ def view_report(report_id):
                 WHERE report_id = ?
             """, (report_id,)).fetchall()
 
-        # ✅ dict로 변환하여 키 누락 방지
+        # dict로 변환 (키 누락 방지)
         files = []
         for f in raw_files:
             files.append({
@@ -394,10 +394,16 @@ def view_report(report_id):
     finally:
         conn.close()
 
-    return render_template("view.html", report=report, contents=contents, files=files)
+    # ✅ user 세션정보 추가 전달
+    user = session.get("user")
 
-
-
+    return render_template(
+        "view.html",
+        report=report,
+        contents=contents,
+        files=files,
+        user=user,  # ← 여기가 핵심
+    )
 
 # =========================
 # 보고서 수정 (edit.html)
