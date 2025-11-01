@@ -297,10 +297,14 @@ def report_list():
 
             if match_title or match_content:
                 item = dict(r)
-                files = conn.execute(
-                    "SELECT filename, department FROM report_files WHERE report_id = ?",
-                    (r["id"],)
-                ).fetchall()
+                item["files"] = [
+                    {
+                        "name": f["filename"],
+                        "original_name": f["original_name"] or f["filename"],
+                        "dept": f["department"]
+                    }
+                    for f in files
+                ]
                 item["has_files"] = len(files) > 0
                 item["files"] = [f["filename"] for f in files]
                 item["match_details"] = []
