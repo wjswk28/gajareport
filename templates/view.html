@@ -238,17 +238,30 @@
       {% endfor %}
 
       {% if image_files %}
-      <div class="image-section">
+        <div class="image-section">
+        <h3 style="margin-bottom:10px;">📷 이미지 첨부파일</h3>
         <div class="image-gallery">
-          {% for f in image_files %}
-            <a href="{{ url_for('uploaded_file', department=f.department, filename=f.filename|urlencode) }}" target="_blank">
-              <img src="{{ url_for('uploaded_file', department=f.department, filename=f.filename|urlencode) }}"
-                alt="{{ f.filename }}">
-            </a>
-          {% endfor %}
+            {% for f in image_files %}
+            <div style="display:flex; flex-direction:column; align-items:center;">
+                <!-- ✅ 이미지 클릭 시 원본 보기 -->
+                <a href="{{ url_for('uploaded_file', department=f.department, filename=f.filename|urlencode) }}" target="_blank">
+                <img src="{{ url_for('uploaded_file', department=f.department, filename=f.filename|urlencode) }}"
+                    alt="{{ f.filename }}">
+                </a>
+
+                <!-- ✅ 다운로드 버튼 -->
+                <a href="{{ url_for('uploaded_file', department=f.department, filename=f.filename|urlencode) }}" 
+                download
+                class="file-button"
+                style="margin-top:8px; font-size:0.95rem; padding:6px 14px;">
+                ⬇️ {{ f.original_name or f.filename }}
+                </a>
+            </div>
+            {% endfor %}
         </div>
-      </div>
+        </div>
       {% endif %}
+
 
       {% if doc_files %}
       <div class="file-section">
@@ -263,14 +276,18 @@
       {% endif %}
     {% endif %}
 
-    <div class="action-buttons">
-      <a href="{{ url_for('edit_report', report_id=report.id) }}" class="btn-edit">
-        ✏️ 수정
-      </a>
-      <form action="{{ url_for('delete_report', report_id=report.id) }}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');" style="display:inline;">
-        <button type="submit" class="btn-delete">🗑️ 보고서 삭제</button>
-      </form>
-    </div>
+    {% if user['department'] != '관리자' %}
+        <div class="action-buttons">
+            <a href="{{ url_for('edit_report', report_id=report.id) }}" class="btn-edit">
+            ✏️ 수정
+            </a>
+            <form action="{{ url_for('delete_report', report_id=report.id) }}" method="post"
+                onsubmit="return confirm('정말 삭제하시겠습니까?');" style="display:inline;">
+            <button type="submit" class="btn-delete">🗑️ 보고서 삭제</button>
+            </form>
+        </div>
+    {% endif %}
+
 
     <a href="{{ url_for('report_list') }}" class="back-link">← 목록으로 돌아가기</a>
   </div>
