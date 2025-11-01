@@ -273,12 +273,20 @@ def report_list():
                     for m in matches
                 ]
                 files = conn.execute(
-                    "SELECT filename, department FROM report_files WHERE report_id = ?",
+                    "SELECT filename, original_name, department FROM report_files WHERE report_id = ?",
                     (r["id"],)
                 ).fetchall()
                 item["has_files"] = len(files) > 0
-                item["files"] = [f["filename"] for f in files]
+                item["files"] = [
+                    {
+                        "filename": f["filename"],
+                        "original_name": f["original_name"] or f["filename"],
+                        "department": f["department"]
+                    }
+                    for f in files
+                ]
                 enriched.append(item)
+
 
     # ✅ 2. 제목 + 내용 검색
     elif search_query and search_filter == "title_content":
